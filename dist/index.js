@@ -1583,7 +1583,7 @@ async function main() {
             await runCmd('git', cmd, failOnStdErr);
         }
         else {
-            executedCommands.push(...['git'].concat(cmd));
+            executedCommands.push(['git'].concat(cmd).join(' '));
         }
     }
     core.startGroup('Validate version');
