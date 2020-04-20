@@ -13,24 +13,28 @@ MINOR_TAG=$(printf "${1}" | awk -F'.' '{print $1"."$2}')
 UPDATE_MAJOR=$2
 UPDATE_MINOR=$3
 
+if [ "${UPDATE_MAJOR}" != "true" ] && [ "${UPDATE_MINOR}" != "true" ]; then
+  exit 0
+fi
+
 if [ "${4}" != "true" ]; then
   GH_USER=${GITHUB_ACTOR:-nobody}
-  echo "git config user.name ${GH_USER}"
-  echo "git config user.email ${GH_USER}@users.noreply.github.com"
+  printf "git config user.name ${GH_USER}\n"
+  printf "git config user.email ${GH_USER}@users.noreply.github.com\n"
 fi
 
 if [ "${UPDATE_MAJOR}" == "true" ]; then
-  echo "git tag --force ${MAJOR_TAG}"
+  printf "git tag --force ${MAJOR_TAG}\n"
 fi
 
 if [ "${UPDATE_MINOR}" == "true" ]; then
-  echo "git tag --force ${MINOR_TAG}"
+  printf "git tag --force ${MINOR_TAG}\n"
 fi
 
 if [ "${UPDATE_MAJOR}" == "true" ]; then
-  echo "git push --force origin ${MAJOR_TAG}"
+  printf "git push --force origin ${MAJOR_TAG}\n"
 fi
 
 if [ "${UPDATE_MINOR}" == "true" ]; then
-  echo "git push --force origin ${MINOR_TAG}"
+  printf "git push --force origin ${MINOR_TAG}\n"
 fi
