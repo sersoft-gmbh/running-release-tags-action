@@ -1586,9 +1586,9 @@ async function main() {
     const updateMinor = core.getInput('update-minor', { required: true }) == 'true';
     const skipRepoSetup = core.getInput('skip-repo-setup', { required: true }) == 'true';
     core.endGroup();
-    async function runGit(cmd, failOnStdErr = true) {
+    async function runGit(cmd) {
         if (!dryRun) {
-            await runCmd('git', cmd, failOnStdErr);
+            await runCmd('git', cmd, false);
         }
         else {
             const command = ['git'].concat(cmd).join(' ');
