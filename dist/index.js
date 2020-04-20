@@ -1568,8 +1568,8 @@ async function main() {
     if (!tag) {
         throw new Error("Input `tag` was not set and `${{github.ref}}` is not a valid tag ref!");
     }
-    const prefixRegex = core.getInput('prefix-regex', { required: true });
-    const suffixRegex = core.getInput('suffix-regex', { required: true });
+    const prefixRegex = core.getInput('prefix-regex') || '';
+    const suffixRegex = core.getInput('suffix-regex') || '';
     const failOnNonSemVerTag = core.getInput('fail-on-non-semver-tag', { required: true }) == 'true';
     const updateMajor = core.getInput('update-major', { required: true }) == 'true';
     const updateMinor = core.getInput('update-minor', { required: true }) == 'true';
