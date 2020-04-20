@@ -53,9 +53,9 @@ async function main() {
     const skipRepoSetup = core.getInput('skip-repo-setup', { required: true }) == 'true';
     core.endGroup();
 
-    async function runGit(cmd: string[], failOnStdErr: boolean = true) {
+    async function runGit(cmd: string[]) {
         if (!dryRun) {
-            await runCmd('git', cmd, failOnStdErr);
+            await runCmd('git', cmd, false);
         } else {
             const command = ['git'].concat(cmd).join(' ');
             core.debug(`Would execute: \`${command}\``);
