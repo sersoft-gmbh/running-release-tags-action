@@ -1,0 +1,37 @@
+name: Release Tag Updater
+description: A GitHub action that automatically updates "running release" major and major.minor tags.
+author: ser.soft GmbH
+inputs:
+  tag:
+    description: The tag to use for generating the other tags. If not set, the action will attempt to parse it from ${{github.ref}}.
+    required: false
+  prefix-regex:
+    description: The regex that is used to match allowed tag prefixes.
+    required: true
+    default: 'v?'
+  suffix-regex:
+    description: The regex that is used to match allowed tag suffixes.
+    required: true
+    default: ''
+  fail-on-non-semver-tag:
+    description: Whether the action should fail on non-semver compatible tags.
+    required: true
+    default: false
+  update-major:
+    description: Whether the major tag should be updated.
+    required: true
+    default: true
+  update-minor:
+    description: Whether the major.minor tag should be updated.
+    required: true
+    default: true
+  skip-repo-setup:
+    description: Whether the repository setup should be skipped (setting user.name and user.email).
+    required: true
+    default: false
+runs:
+  using: node12
+  main: dist/index.js
+branding:
+  color: gray-dark
+  icon: tag
