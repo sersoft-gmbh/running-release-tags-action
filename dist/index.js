@@ -1557,9 +1557,15 @@ async function runCmd(cmd, args, failOnStdErr = true) {
 }
 function parseTag() {
     const ref = process.env.GITHUB_REF;
-    const prefix = "refs/tags/";
-    if (!ref || !ref.startsWith(prefix))
+    if (!ref) {
+        core.debug("GITHUB_REF is not set!");
         return null;
+    }
+    const prefix = "refs/tags/";
+    if (!ref.startsWith(prefix)) {
+        core.debug(`${ref} is not a valid tag ref!`);
+        return null;
+    }
     return ref.substring(prefix.length);
 }
 async function main() {
