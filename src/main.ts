@@ -1,11 +1,5 @@
 import * as core from '@actions/core';
 import * as exec from '@actions/exec';
-import * as io from '@actions/io';
-import {mkdtemp, writeFile} from "fs";
-import * as util from "util";
-import path from "path";
-import {fail} from "assert";
-import {version} from "punycode";
 
 async function runCmd(cmd: string, args?: string[], failOnStdErr: boolean = true): Promise<string> {
     let stdOut = '';
