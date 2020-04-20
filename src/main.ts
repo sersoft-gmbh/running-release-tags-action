@@ -20,8 +20,15 @@ async function runCmd(cmd: string, args?: string[], failOnStdErr: boolean = true
 
 function parseTag(): (string | null) {
     const ref = process.env.GITHUB_REF as string;
+    if (!ref) {
+        core.debug("GITHUB_REF is not set!");
+        return null;
+    }
     const prefix = "refs/tags/";
-    if (!ref || !ref.startsWith(prefix)) return null;
+    if (!ref.startsWith(prefix)) {
+        core.debug(`${ref} is not a valid tag ref!`);
+        return null;
+    }
     return ref.substring(prefix.length);
 }
 
