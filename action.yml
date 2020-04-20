@@ -3,7 +3,7 @@ description: A GitHub action that automatically updates "running release" major 
 author: ser.soft GmbH
 inputs:
   tag:
-    description: The tag to use for generating the other tags. If not set, the action will attempt to parse it from ${{github.ref}}.
+    description: The tag to use for generating the other tags. If not set, the action will attempt to parse it from $GITHUB_REF.
     required: false
   prefix-regex:
     description: The regex that is used to match allowed tag prefixes.
