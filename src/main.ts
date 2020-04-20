@@ -56,7 +56,7 @@ async function main() {
     const versionRegEx = new RegExp(`^${prefixRegex}[0-9]+\\.[0-9]+\\.[0-9]+${suffixRegex}$`);
     if (!versionRegEx.test(tag)) {
         const message = `Version tag ${tag} does not match (semver) regex ${versionRegEx.source}`;
-        if (!failOnNonSemVerTag) {
+        if (failOnNonSemVerTag) {
             throw new Error(message);
         } else {
             core.info(message);
