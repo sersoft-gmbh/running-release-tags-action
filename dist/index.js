@@ -1583,7 +1583,9 @@ async function main() {
             await runCmd('git', cmd, failOnStdErr);
         }
         else {
-            executedCommands.push(['git'].concat(cmd).join(' '));
+            const command = ['git'].concat(cmd).join(' ');
+            core.debug(`Would execute: \`${command}\``);
+            executedCommands.push(command);
         }
     }
     core.startGroup('Validate version');
