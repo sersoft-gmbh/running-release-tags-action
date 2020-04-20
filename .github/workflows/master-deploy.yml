@@ -72,51 +72,51 @@ jobs:
           echo "${{steps.create-tags.outputs.executed-commands}}" > actual.txt
           git diff --no-index -- actual.txt expected.txt
 
-    test-from-env:
-      needs: deploy-action-code
-      strategy:
-        matrix:
-          tag: ['v1.2.3', 'v2.0.0', '3.2.7d', '12.43.1', 'x4.2.1']
-          update-major: [true, false]
-          update-minor: [true, false]
-          skip-repo-setup: [true, false]
-      runs-on: ubuntu-latest
-      steps:
-        - run: test "${{secrets.ACTIONS_STEP_DEBUG}}" == 'true'
-        - uses: actions/checkout@v2
-        - uses: sersoft-gmbh/running-release-tags-action@master
-          with:
-            update-major: ${{matrix.update-major}}
-            update-minor: ${{matrix.update-minor}}
-            prefix-regex: '(v|x)?'
-            suffix-regex: 'd?'
-            skip-repo-setup: ${{matrix.skip-repo-setup}}
-            dry-run: true
-          env:
-            GITHUB_REF: ref/tags/${{matrix.tag}}
-          id: create-tags
-          if: secrets.ACTIONS_STEP_DEBUG == 'true' # double safety to not mess up any tags.
-        - name: Check executed commands
-          run: |
-            ./__test__/bin/generate_expected_commands.sh ${{matrix.tag}} ${{matrix.update-major}} ${{matrix.update-minor}} ${{matrix.skip-repo-setup}} > expected.txt
-            echo "${{steps.create-tags.outputs.executed-commands}}" > actual.txt
-            git diff --no-index -- actual.txt expected.txt
+  test-from-env:
+    needs: deploy-action-code
+    strategy:
+      matrix:
+        tag: ['v1.2.3', 'v2.0.0', '3.2.7d', '12.43.1', 'x4.2.1']
+        update-major: [true, false]
+        update-minor: [true, false]
+        skip-repo-setup: [true, false]
+    runs-on: ubuntu-latest
+    steps:
+      - run: test "${{secrets.ACTIONS_STEP_DEBUG}}" == 'true'
+      - uses: actions/checkout@v2
+      - uses: sersoft-gmbh/running-release-tags-action@master
+        with:
+          update-major: ${{matrix.update-major}}
+          update-minor: ${{matrix.update-minor}}
+          prefix-regex: '(v|x)?'
+          suffix-regex: 'd?'
+          skip-repo-setup: ${{matrix.skip-repo-setup}}
+          dry-run: true
+        env:
+          GITHUB_REF: ref/tags/${{matrix.tag}}
+        id: create-tags
+        if: secrets.ACTIONS_STEP_DEBUG == 'true' # double safety to not mess up any tags.
+      - name: Check executed commands
+        run: |
+          ./__test__/bin/generate_expected_commands.sh ${{matrix.tag}} ${{matrix.update-major}} ${{matrix.update-minor}} ${{matrix.skip-repo-setup}} > expected.txt
+          echo "${{steps.create-tags.outputs.executed-commands}}" > actual.txt
+          git diff --no-index -- actual.txt expected.txt
 
-    test-invalid:
-      needs: deploy-action-code
-      strategy:
-        matrix:
-          tag: ['1', '34.2', 'v3x', 'not-a-version']
-      runs-on: ubuntu-latest
-      steps:
-        - run: test "${{secrets.ACTIONS_STEP_DEBUG}}" == 'true'
-        - uses: actions/checkout@v2
-        - uses: sersoft-gmbh/running-release-tags-action@master
-          with:
-            tag: ${{matrix.tag}}
-            fail-on-non-semver-tag: false
-            dry-run: true
-          id: create-tags
-          if: secrets.ACTIONS_STEP_DEBUG == 'true' # double safety to not mess up any tags.
-        - name: Check executed commands
-          run: test "${{steps.create-tags.outputs.executed-commands}}" == ""
+  test-invalid:
+    needs: deploy-action-code
+    strategy:
+      matrix:
+        tag: ['1', '34.2', 'v3x', 'not-a-version']
+    runs-on: ubuntu-latest
+    steps:
+      - run: test "${{secrets.ACTIONS_STEP_DEBUG}}" == 'true'
+      - uses: actions/checkout@v2
+      - uses: sersoft-gmbh/running-release-tags-action@master
+        with:
+          tag: ${{matrix.tag}}
+          fail-on-non-semver-tag: false
+          dry-run: true
+        id: create-tags
+        if: secrets.ACTIONS_STEP_DEBUG == 'true' # double safety to not mess up any tags.
+      - name: Check executed commands
+        run: test "${{steps.create-tags.outputs.executed-commands}}" == ""
