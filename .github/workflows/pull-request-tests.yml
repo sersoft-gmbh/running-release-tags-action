@@ -22,8 +22,8 @@ jobs:
       - name: Check executed commands
         run: |
           ./__test__/bin/generate_expected_commands.sh 1.2.3 true true false > expected.txt
-          printf "${{steps.create-tags.outputs.executed-commands}}" > actual.txt
-          git diff --no-index -- actual.txt expected.txt
+          printf "${{steps.create-tags.outputs.executed-commands}}\n" > actual.txt
+          git diff --no-index -- expected.txt actual.txt
 
   test-customized:
     strategy:
@@ -53,8 +53,8 @@ jobs:
       - name: Check executed commands
         run: |
           ./__test__/bin/generate_expected_commands.sh ${{matrix.tag}} ${{matrix.update-major}} ${{matrix.update-minor}} ${{matrix.skip-repo-setup}} > expected.txt
-          printf "${{steps.create-tags.outputs.executed-commands}}" > actual.txt
-          git diff --no-index -- actual.txt expected.txt
+          printf "${{steps.create-tags.outputs.executed-commands}}\n" > actual.txt
+          git diff --no-index -- expected.txt actual.txt
 
   test-from-env:
     strategy:
@@ -85,8 +85,8 @@ jobs:
       - name: Check executed commands
         run: |
           ./__test__/bin/generate_expected_commands.sh ${{matrix.tag}} ${{matrix.update-major}} ${{matrix.update-minor}} ${{matrix.skip-repo-setup}} > expected.txt
-          printf "${{steps.create-tags.outputs.executed-commands}}" > actual.txt
-          git diff --no-index -- actual.txt expected.txt
+          printf "${{steps.create-tags.outputs.executed-commands}}\n" > actual.txt
+          git diff --no-index -- expected.txt actual.txt
 
   test-invalid:
     strategy:

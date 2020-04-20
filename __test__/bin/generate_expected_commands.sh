@@ -14,6 +14,7 @@ UPDATE_MAJOR=$2
 UPDATE_MINOR=$3
 
 if [ "${UPDATE_MAJOR}" != "true" ] && [ "${UPDATE_MINOR}" != "true" ]; then
+  printf "\n" # Empty commands from action lead to a file with a single newline.
   exit 0
 fi
 
