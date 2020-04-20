@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euxo pipefail
+set -euo pipefail
 
 if [ $# -ne 4 ]; then
   >&2 printf "Invalid argument count!\n"
