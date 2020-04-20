@@ -1556,9 +1556,10 @@ async function runCmd(cmd, args, failOnStdErr = true) {
     return stdOut;
 }
 function parseTag(dryRun) {
-    const refVar = dryRun ? process.env.TEST_GITHUB_REF : process.env.GITHUB_REF;
+    const envVar = dryRun ? 'TEST_GITHUB_REF' : 'GITHUB_REF';
+    const refVar = process.env[envVar];
     if (!refVar) {
-        core.debug("GITHUB_REF is not set!");
+        core.debug(`${envVar} is not set!`);
         return null;
     }
     const ref = refVar;
