@@ -48,7 +48,7 @@ async function main() {
         if (!dryRun) {
             await runCmd('git', cmd, failOnStdErr);
         } else {
-            executedCommands.push(...['git'].concat(cmd));
+            executedCommands.push(['git'].concat(cmd).join(' '));
         }
     }
 
