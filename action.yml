@@ -7,12 +7,11 @@ inputs:
     required: false
   prefix-regex:
     description: The regex that is used to match allowed tag prefixes.
-    required: true
+    required: false
     default: 'v?'
   suffix-regex:
     description: The regex that is used to match allowed tag suffixes.
-    required: true
-    default: ''
+    required: false
   fail-on-non-semver-tag:
     description: Whether the action should fail on non-semver compatible tags.
     required: true
