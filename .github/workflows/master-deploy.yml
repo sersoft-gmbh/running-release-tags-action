@@ -36,7 +36,6 @@ jobs:
           tag: 1.2.3
           dry-run: true
         id: create-tags
-        if: secrets.ACTIONS_STEP_DEBUG == 'true' # double safety to not mess up any tags.
       - name: Check executed commands
         run: |
           ./__test__/bin/generate_expected_commands.sh 1.2.3 true true false > expected.txt
@@ -65,7 +64,6 @@ jobs:
           skip-repo-setup: ${{matrix.skip-repo-setup}}
           dry-run: true
         id: create-tags
-        if: secrets.ACTIONS_STEP_DEBUG == 'true' # double safety to not mess up any tags.
       - name: Check executed commands
         run: |
           ./__test__/bin/generate_expected_commands.sh ${{matrix.tag}} ${{matrix.update-major}} ${{matrix.update-minor}} ${{matrix.skip-repo-setup}} > expected.txt
@@ -95,7 +93,6 @@ jobs:
         env:
           GITHUB_REF: ref/tags/${{matrix.tag}}
         id: create-tags
-        if: secrets.ACTIONS_STEP_DEBUG == 'true' # double safety to not mess up any tags.
       - name: Check executed commands
         run: |
           ./__test__/bin/generate_expected_commands.sh ${{matrix.tag}} ${{matrix.update-major}} ${{matrix.update-minor}} ${{matrix.skip-repo-setup}} > expected.txt
@@ -117,6 +114,5 @@ jobs:
           fail-on-non-semver-tag: false
           dry-run: true
         id: create-tags
-        if: secrets.ACTIONS_STEP_DEBUG == 'true' # double safety to not mess up any tags.
       - name: Check executed commands
         run: test "${{steps.create-tags.outputs.executed-commands}}" == ""
