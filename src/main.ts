@@ -18,12 +18,13 @@ async function runCmd(cmd: string, args?: string[], failOnStdErr: boolean = true
     return stdOut;
 }
 
-function parseTag(): (string | null) {
-    const ref = process.env.GITHUB_REF as string;
-    if (!ref) {
+function parseTag(dryRun: boolean): (string | null) {
+    const refVar = dryRun ? process.env.TEST_GITHUB_REF : process.env.GITHUB_REF;
+    if (!refVar) {
         core.debug("GITHUB_REF is not set!");
         return null;
     }
+    const ref = refVar as string;
     const prefix = "refs/tags/";
     if (!ref.startsWith(prefix)) {
         core.debug(`${ref} is not a valid tag ref!`);
@@ -34,7 +35,11 @@ function parseTag(): (string | null) {
 
 async function main() {
     core.startGroup('Validating input');
-    const tag = core.getInput('tag') || parseTag();
+    // undocumented - for tests.
+    let executedCommands: string[] = [];
+    const dryRun = core.isDebug() && core.getInput('dry-run') == 'true';
+
+    const tag = core.getInput('tag') || parseTag(dryRun);
     if (!tag) {
         throw new Error("Input `tag` was not set and `${{github.ref}}` is not a valid tag ref!");
     }
@@ -45,10 +50,6 @@ async function main() {
     const updateMajor = core.getInput('update-major', { required: true }) == 'true';
     const updateMinor = core.getInput('update-minor', { required: true }) == 'true';
     const skipRepoSetup = core.getInput('skip-repo-setup', { required: true }) == 'true';
-
-    // undocumented - for tests.
-    let executedCommands: string[] = [];
-    const dryRun = core.isDebug() && core.getInput('dry-run') == 'true';
     core.endGroup();
 
     async function runGit(cmd: string[], failOnStdErr: boolean = true) {

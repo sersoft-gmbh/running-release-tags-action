@@ -91,7 +91,7 @@ jobs:
           skip-repo-setup: ${{matrix.skip-repo-setup}}
           dry-run: true
         env:
-          GITHUB_REF: refs/tags/${{matrix.tag}}
+          TEST_GITHUB_REF: refs/tags/${{matrix.tag}}
         id: create-tags
       - name: Check executed commands
         run: |
