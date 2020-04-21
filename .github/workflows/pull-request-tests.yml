@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: test "${{secrets.ACTIONS_STEP_DEBUG}}" == 'true'
-      - name: Install depenedencies
+      - name: Install dependencies
         run: sudo npm i -g @zeit/ncc typescript
       - uses: actions/checkout@v2
       - name: Generate action code
@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: test "${{secrets.ACTIONS_STEP_DEBUG}}" == 'true'
-      - name: Install depenedencies
+      - name: Install dependencies
         run: sudo npm i -g @zeit/ncc typescript
       - uses: actions/checkout@v2
       - name: Generate action code
