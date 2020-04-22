@@ -57,10 +57,8 @@ jobs:
         skip-repo-setup: [true, false]
         create-release: [true, false]
         create-release-as-draft: [true, false]
-        major-release-title: ['Major ${version}', 'Another major ${version} title']
-        major-release-body: ['Major ${version} body', 'Another major ${version} body ${version}']
-        minor-release-title: ['Minor ${version}', 'Another minor ${version} title']
-        minor-release-body: ['Minor ${version} body', 'Another minor ${version} body ${version}']
+        release-title: ['Release ${version}', 'Another ${version} title']
+        release-body: ['Release ${version} body', 'Another ${version} body ${version}']
     runs-on: ubuntu-latest
     steps:
       - run: test "${{secrets.ACTIONS_STEP_DEBUG}}" == 'true'
@@ -75,10 +73,10 @@ jobs:
           skip-repo-setup: ${{matrix.skip-repo-setup}}
           create-release: ${{matrix.create-release}}
           create-release-as-draft: ${{matrix.create-release-as-draft}}
-          major-release-title: ${{matrix.major-release-title}}
-          major-release-body: ${{matrix.major-release-body}}
-          minor-release-title: ${{matrix.minor-release-title}}
-          minor-release-body: ${{matrix.minor-release-body}}
+          major-release-title: ${{matrix.release-title}}
+          major-release-body: ${{matrix.release-body}}
+          minor-release-title: ${{matrix.release-title}}
+          minor-release-body: ${{matrix.release-body}}
           github-token: ${{secrets.GITHUB_TOKEN}}
           dry-run: true
         id: create-tags
@@ -91,10 +89,10 @@ jobs:
             ${{matrix.skip-repo-setup}} \
             ${{matrix.create-release}} \
             ${{matrix.create-release-as-draft}} \
-            ${{matrix.major-release-title}} \
-            ${{matrix.major-release-body}} \
-            ${{matrix.minor-release-title}} \
-            ${{matrix.minor-release-body}} \
+            ${{matrix.release-title}} \
+            ${{matrix.release-body}} \
+            ${{matrix.release-title}} \
+            ${{matrix.release-body}} \
           > expected.txt
           printf "${{steps.create-tags.outputs.executed-commands}}\n" > actual.txt
           git diff --no-index -- expected.txt actual.txt
@@ -109,10 +107,8 @@ jobs:
         skip-repo-setup: [true, false]
         create-release: [true, false]
         create-release-as-draft: [true, false]
-        major-release-title: ['Major ${version}', 'Another major ${version} title']
-        major-release-body: ['Major ${version} body', 'Another major ${version} body ${version}']
-        minor-release-title: ['Minor ${version}', 'Another minor ${version} title']
-        minor-release-body: ['Minor ${version} body', 'Another minor ${version} body ${version}']
+        release-title: ['Release ${version}', 'Another ${version} title']
+        release-body: ['Release ${version} body', 'Another ${version} body ${version}']
     runs-on: ubuntu-latest
     steps:
       - run: test "${{secrets.ACTIONS_STEP_DEBUG}}" == 'true'
@@ -126,10 +122,10 @@ jobs:
           skip-repo-setup: ${{matrix.skip-repo-setup}}
           create-release: ${{matrix.create-release}}
           create-release-as-draft: ${{matrix.create-release-as-draft}}
-          major-release-title: ${{matrix.major-release-title}}
-          major-release-body: ${{matrix.major-release-body}}
-          minor-release-title: ${{matrix.minor-release-title}}
-          minor-release-body: ${{matrix.minor-release-body}}
+          major-release-title: ${{matrix.release-title}}
+          major-release-body: ${{matrix.release-body}}
+          minor-release-title: ${{matrix.release-title}}
+          minor-release-body: ${{matrix.release-body}}
           github-token: ${{secrets.GITHUB_TOKEN}}
           dry-run: true
         env:
@@ -144,10 +140,10 @@ jobs:
             ${{matrix.skip-repo-setup}} \
             ${{matrix.create-release}} \
             ${{matrix.create-release-as-draft}} \
-            ${{matrix.major-release-title}} \
-            ${{matrix.major-release-body}} \
-            ${{matrix.minor-release-title}} \
-            ${{matrix.minor-release-body}} \
+            ${{matrix.release-title}} \
+            ${{matrix.release-body}} \
+            ${{matrix.release-title}} \
+            ${{matrix.release-body}} \
           > expected.txt
           printf "${{steps.create-tags.outputs.executed-commands}}\n" > actual.txt
           git diff --no-index -- expected.txt actual.txt
