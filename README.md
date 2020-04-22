@@ -71,7 +71,7 @@ Default: `'${version} Minor Release Track'`
 ### `minor-release-body`
 
 The body of the minor release. The placeholder `${version}` is replaced by the minor tag name.<br/>
-Default: This release tracks the latest ${version} minor release (${version}.x).
+Default: `'This release tracks the latest ${version} minor release (${version}.x).'`
   
 ### `github-token`
 
