@@ -145,18 +145,20 @@ async function main() {
             const octokit = new github.GitHub(githubToken);
             async function createReleaseIfNeeded(flag: boolean, release: (IReleaseParameters | null), tag: string) {
                 if (!flag || !release) return;
-                let needsRelease = await octokit.repos.getReleaseByTag({
-                    owner: github.context.repo.owner,
-                    repo: github.context.repo.repo,
-                    tag: tag
-                }).then(r => r.status != 200).catch(e => {
-                    if (e instanceof RequestError && e.status == 404) {
-                        return Promise.resolve(true);
-                    }
-                    return Promise.reject(e);
-                });
-                core.debug(`Check if ${tag} needs a release says -> ${needsRelease}`);
-                if (dryRun) {
+                let needsRelease: boolean;
+                if (!dryRun) {
+                    needsRelease = await octokit.repos.getReleaseByTag({
+                        owner: github.context.repo.owner,
+                        repo: github.context.repo.repo,
+                        tag: tag
+                    }).then(r => r.status != 200).catch(e => {
+                        if (e instanceof RequestError && e.status == 404) {
+                            return Promise.resolve(true);
+                        }
+                        return Promise.reject(e);
+                    });
+                    core.debug(`Check if ${tag} needs a release says -> ${needsRelease}`);
+                } else {
                     dryRunCmd(['github', 'get-release-by-tag', tag]);
                     needsRelease = true;
                 }
@@ -172,9 +174,9 @@ async function main() {
                     name: releaseText(release.title, tag),
                     body: releaseText(release.body, tag),
                     draft: release.isDraft
-                };
-                core.debug(`Creating release for ${tag}...`);
+                }
                 if (!dryRun) {
+                    core.debug(`Creating release for ${tag}...`);
                     const response = await octokit.repos.createRelease(requestParams);
                     core.debug(`Created release (status ${response.status} with id ${response.data.id}.`);
                 } else {
