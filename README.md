@@ -75,8 +75,7 @@ Default: This release tracks the latest ${version} minor release (${version}.x).
   
 ### `github-token`
 
-The token with which to authenticate against GitHub. Only required if releases should be created.<br/>
-Default: `${{secrets.GITHUB_TOKEN}}`
+The token with which to authenticate against GitHub. Only required if releases should be created. Can be set to `${{secrets.GITHUB_TOKEN}}`.
 
 ## Example Usage
 

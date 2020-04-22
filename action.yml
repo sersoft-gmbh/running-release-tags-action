@@ -55,7 +55,6 @@ inputs:
   github-token:
     description: The token with which to authenticate against GitHub. Only required if releases should be created.
     required: false
-    default: ${{secrets.GITHUB_TOKEN}}
 runs:
   using: node12
   main: dist/index.js
