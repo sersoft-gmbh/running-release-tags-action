@@ -155,6 +155,7 @@ async function main() {
                     dryRunCmd(['github', 'get-release-by-tag', tag]);
                     needsRelease = true;
                 }
+                core.debug(`Check if ${tag} needs a release says -> ${needsRelease}`);
                 if (!needsRelease) return;
                 function releaseText(template: string, tag: string): string {
                     return template.split('${version}').join(tag);
@@ -168,8 +169,10 @@ async function main() {
                     body: releaseText(release.body, tag),
                     draft: release.isDraft
                 };
+                core.debug(`Creating release for ${tag}...`);
                 if (!dryRun) {
-                    await octokit.repos.createRelease(requestParams);
+                    const response = await octokit.repos.createRelease(requestParams);
+                    core.debug(`Created release (status ${response.status} with id ${response.data.id}.`);
                 } else {
                     dryRunCmd([
                         'github', 'create-release',
