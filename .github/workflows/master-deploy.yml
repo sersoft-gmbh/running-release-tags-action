@@ -29,16 +29,17 @@ jobs:
     needs: deploy-action-code
     runs-on: ubuntu-latest
     steps:
-      - run: test "${{secrets.ACTIONS_STEP_DEBUG}}" == 'true'
+      - run: test '${{secrets.ACTIONS_STEP_DEBUG}}' == 'true'
       - uses: actions/checkout@v2
       - uses: sersoft-gmbh/running-release-tags-action@master
         with:
           tag: 1.2.3
+          github-token: ${{secrets.GITHUB_TOKEN}}
           dry-run: true
         id: create-tags
       - name: Check executed commands
         run: |
-          ./__test__/bin/generate_expected_commands.sh 1.2.3 true true false true false \
+          ./__test__/bin/generate_expected_commands.sh '1.2.3' true true false true false \
             '${version} Major Release Track' \
             'This release tracks the latest ${version} major release (${version}.x.y).' \
             '${version} Minor Release Track' \
@@ -61,7 +62,7 @@ jobs:
         release-body: ['Release ${version} body ${version}']
     runs-on: ubuntu-latest
     steps:
-      - run: test "${{secrets.ACTIONS_STEP_DEBUG}}" == 'true'
+      - run: test '${{secrets.ACTIONS_STEP_DEBUG}}' == 'true'
       - uses: actions/checkout@v2
       - uses: sersoft-gmbh/running-release-tags-action@master
         with:
@@ -83,18 +84,18 @@ jobs:
       - name: Check executed commands
         run: |
           ./__test__/bin/generate_expected_commands.sh \
-            ${{matrix.tag}} \
-            ${{matrix.update-major}} \
-            ${{matrix.update-minor}} \
-            ${{matrix.skip-repo-setup}} \
-            ${{matrix.create-release}} \
-            ${{matrix.create-release-as-draft}} \
-            ${{matrix.release-title}} \
-            ${{matrix.release-body}} \
-            ${{matrix.release-title}} \
-            ${{matrix.release-body}} \
+            '${{matrix.tag}}' \
+            '${{matrix.update-major}}' \
+            '${{matrix.update-minor}}' \
+            '${{matrix.skip-repo-setup}}' \
+            '${{matrix.create-release}}' \
+            '${{matrix.create-release-as-draft}}' \
+            '${{matrix.release-title}}' \
+            '${{matrix.release-body}}' \
+            '${{matrix.release-title}}' \
+            '${{matrix.release-body}}' \
           > expected.txt
-          printf "${{steps.create-tags.outputs.executed-commands}}\n" > actual.txt
+          printf '${{steps.create-tags.outputs.executed-commands}}\n' > actual.txt
           git diff --no-index -- expected.txt actual.txt
 
   test-from-env:
@@ -111,7 +112,7 @@ jobs:
         release-body: ['Release ${version} body ${version}']
     runs-on: ubuntu-latest
     steps:
-      - run: test "${{secrets.ACTIONS_STEP_DEBUG}}" == 'true'
+      - run: test '${{secrets.ACTIONS_STEP_DEBUG}}' == 'true'
       - uses: actions/checkout@v2
       - uses: sersoft-gmbh/running-release-tags-action@master
         with:
@@ -134,18 +135,18 @@ jobs:
       - name: Check executed commands
         run: |
           ./__test__/bin/generate_expected_commands.sh \
-            ${{matrix.tag}} \
-            ${{matrix.update-major}} \
-            ${{matrix.update-minor}} \
-            ${{matrix.skip-repo-setup}} \
-            ${{matrix.create-release}} \
-            ${{matrix.create-release-as-draft}} \
-            ${{matrix.release-title}} \
-            ${{matrix.release-body}} \
-            ${{matrix.release-title}} \
-            ${{matrix.release-body}} \
+            '${{matrix.tag}}' \
+            '${{matrix.update-major}}' \
+            '${{matrix.update-minor}}' \
+            '${{matrix.skip-repo-setup}}' \
+            '${{matrix.create-release}}' \
+            '${{matrix.create-release-as-draft}}' \
+            '${{matrix.release-title}}' \
+            '${{matrix.release-body}}' \
+            '${{matrix.release-title}}' \
+            '${{matrix.release-body}}' \
           > expected.txt
-          printf "${{steps.create-tags.outputs.executed-commands}}\n" > actual.txt
+          printf '${{steps.create-tags.outputs.executed-commands}}\n' > actual.txt
           git diff --no-index -- expected.txt actual.txt
 
   test-invalid:
@@ -155,7 +156,7 @@ jobs:
         tag: ['1', '34.2', 'v3x', 'not-a-version']
     runs-on: ubuntu-latest
     steps:
-      - run: test "${{secrets.ACTIONS_STEP_DEBUG}}" == 'true'
+      - run: test '${{secrets.ACTIONS_STEP_DEBUG}}' == 'true'
       - uses: actions/checkout@v2
       - uses: sersoft-gmbh/running-release-tags-action@master
         with:
@@ -164,4 +165,4 @@ jobs:
           dry-run: true
         id: create-tags
       - name: Check executed commands
-        run: test "${{steps.create-tags.outputs.executed-commands}}" == ""
+        run: test '${{steps.create-tags.outputs.executed-commands}}' == ''
