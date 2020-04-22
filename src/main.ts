@@ -144,13 +144,18 @@ async function main() {
             const octokit = new github.GitHub(githubToken);
             async function createReleaseIfNeeded(flag: boolean, release: (IReleaseParameters | null), tag: string) {
                 if (!flag || !release) return;
-                if (dryRun) dryRunCmd(['github', 'get-release-by-tag', tag]);
-                const needsRelease = await octokit.repos.getReleaseByTag({
-                    owner: github.context.repo.owner,
-                    repo: github.context.repo.repo,
-                    tag: tag
-                }).then(r => r.status != 200).catch(e => e.number == 404);
-                if (!needsRelease && !dryRun) return;
+                let needsRelease: boolean;
+                if (!dryRun) {
+                    needsRelease = await octokit.repos.getReleaseByTag({
+                        owner: github.context.repo.owner,
+                        repo: github.context.repo.repo,
+                        tag: tag
+                    }).then(r => r.status != 200).catch(e => e.number == 404);
+                } else {
+                    dryRunCmd(['github', 'get-release-by-tag', tag]);
+                    needsRelease = true;
+                }
+                if (!needsRelease) return;
                 function releaseText(template: string, tag: string): string {
                     return template.split('${version}').join(tag);
                 }
@@ -169,7 +174,8 @@ async function main() {
                     dryRunCmd([
                         'github', 'create-release',
                         requestParams.tag_name,
-                        requestParams.name || "", requestParams.body || '',
+                        requestParams.name || '',
+                        requestParams.body || '',
                         `${requestParams.draft || false}`
                     ]);
                 }
