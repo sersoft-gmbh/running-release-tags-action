@@ -26128,12 +26128,12 @@ async function main() {
                     return;
                 if (dryRun)
                     dryRunCmd(['github', 'get-release-by-tag', tag]);
-                const { status: status } = await octokit.repos.getReleaseByTag({
+                const needsRelease = await octokit.repos.getReleaseByTag({
                     owner: github.context.repo.owner,
                     repo: github.context.repo.repo,
                     tag: tag
-                });
-                if (status == 200 && !dryRun)
+                }).then(r => r.status != 200).catch(e => e.number == 404);
+                if (!needsRelease && !dryRun)
                     return;
                 function releaseText(template, tag) {
                     return template.split('${version}').join(tag);
