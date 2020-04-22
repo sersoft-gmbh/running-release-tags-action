@@ -145,12 +145,12 @@ async function main() {
             async function createReleaseIfNeeded(flag: boolean, release: (IReleaseParameters | null), tag: string) {
                 if (!flag || !release) return;
                 if (dryRun) dryRunCmd(['github', 'get-release-by-tag', tag]);
-                const { status: status } = await octokit.repos.getReleaseByTag({
+                const needsRelease = await octokit.repos.getReleaseByTag({
                     owner: github.context.repo.owner,
                     repo: github.context.repo.repo,
                     tag: tag
-                });
-                if (status == 200 && !dryRun) return;
+                }).then(r => r.status != 200).catch(e => e.number == 404);
+                if (!needsRelease && !dryRun) return;
                 function releaseText(template: string, tag: string): string {
                     return template.split('${version}').join(tag);
                 }

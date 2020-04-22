@@ -162,6 +162,7 @@ jobs:
         with:
           tag: ${{matrix.tag}}
           fail-on-non-semver-tag: false
+          github-token: ${{secrets.GITHUB_TOKEN}}
           dry-run: true
         id: create-tags
       - name: Check executed commands
