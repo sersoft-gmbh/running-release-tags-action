@@ -16,6 +16,10 @@ inputs:
     description: Whether the action should fail on non-semver compatible tags.
     required: true
     default: false
+  skip-repo-setup:
+    description: Whether the repository setup should be skipped (setting user.name and user.email).
+    required: true
+    default: false
   update-major:
     description: Whether the major tag should be updated.
     required: true
@@ -24,10 +28,34 @@ inputs:
     description: Whether the major.minor tag should be updated.
     required: true
     default: true
-  skip-repo-setup:
-    description: Whether the repository setup should be skipped (setting user.name and user.email).
+  create-release:
+    description: Whether a corresponding github release should be created.
+    required: true
+    default: true
+  create-release-as-draft:
+    description: Whether to create the github releases as draft.
     required: true
     default: false
+  major-release-title:
+    description: The title of the major release (${version} is replaced by the tag name).
+    required: false
+    default: ${version} Major Release Track
+  major-release-body:
+    description: The body of the major release (${version} is replaced by the tag name).
+    required: false
+    default: This release tracks the latest ${version} major release (${version}.x.y).
+  minor-release-title:
+    description: The title of the minor release (${version} is replaced by the tag name).
+    required: false
+    default: ${version} Minor Release Track
+  minor-release-body:
+    description: The body of the minor release (${version} is replaced by the tag name).
+    required: false
+    default: This release tracks the latest ${version} minor release (${version}.x).
+  github-token:
+    description: The token with which to authenticate against GitHub. Only required if releases should be created.
+    required: false
+    default: ${{secrets.GITHUB_TOKEN}}
 runs:
   using: node12
   main: dist/index.js

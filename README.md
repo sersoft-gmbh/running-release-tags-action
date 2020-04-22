@@ -2,7 +2,7 @@
 
 ![Master Deploy](https://github.com/sersoft-gmbh/running-release-tags-action/workflows/Master%20Deploy/badge.svg)
 
-This action automatically updates "running release" major and major.minor tags.
+This action automatically updates "running release" major and major.minor tags and GitHub releases.
 
 ## Inputs
 
@@ -42,6 +42,41 @@ Default: `true`
 
 Whether the repository setup should be skipped (namely setting the `user.name` and `user.email` config parameters).<br/>
 Default: `false`
+
+### `create-release`
+
+Whether a corresponding GitHub release should be created.<br/>
+Default: `true`
+
+### `create-release-as-draft`:
+
+Whether to create the github releases as draft.<br/>
+Default: `false`
+
+### `major-release-title`
+
+The title of the major release. The placeholder `${version}` is replaced by the major tag name.<br/>
+Default: `'${version} Major Release Track'`
+
+### `major-release-body`
+
+The body of the major release. The placeholder `${version}` is replaced by the major tag name.<br/>
+Default: `'This release tracks the latest ${version} major release (${version}.x.y).'`
+
+### `minor-release-title`
+
+The title of the minor release. The placeholder `${version}` is replaced by the minor tag name.<br/>
+Default: `'${version} Minor Release Track'`
+  
+### `minor-release-body`
+
+The body of the minor release. The placeholder `${version}` is replaced by the minor tag name.<br/>
+Default: This release tracks the latest ${version} minor release (${version}.x).
+  
+### `github-token`
+
+The token with which to authenticate against GitHub. Only required if releases should be created.<br/>
+Default: `${{secrets.GITHUB_TOKEN}}`
 
 ## Example Usage
 

@@ -38,7 +38,12 @@ jobs:
         id: create-tags
       - name: Check executed commands
         run: |
-          ./__test__/bin/generate_expected_commands.sh 1.2.3 true true false > expected.txt
+          ./__test__/bin/generate_expected_commands.sh 1.2.3 true true false true false \
+            '${version} Major Release Track' \
+            'This release tracks the latest ${version} major release (${version}.x.y).' \
+            '${version} Minor Release Track' \
+            'This release tracks the latest ${version} minor release (${version}.x).' \
+          > expected.txt
           printf "${{steps.create-tags.outputs.executed-commands}}\n" > actual.txt
           git diff --no-index -- expected.txt actual.txt
 
@@ -50,6 +55,12 @@ jobs:
         update-major: [true, false]
         update-minor: [true, false]
         skip-repo-setup: [true, false]
+        create-release: [true, false]
+        create-release-as-draft: [true, false]
+        major-release-title: ['Major ${version}', 'Another major ${version} title']
+        major-release-body: ['Major ${version} body', 'Another major ${version} body ${version}']
+        minor-release-title: ['Minor ${version}', 'Another minor ${version} title']
+        minor-release-body: ['Minor ${version} body', 'Another minor ${version} body ${version}']
     runs-on: ubuntu-latest
     steps:
       - run: test "${{secrets.ACTIONS_STEP_DEBUG}}" == 'true'
@@ -62,11 +73,29 @@ jobs:
           prefix-regex: '(v|x)?'
           suffix-regex: 'd?'
           skip-repo-setup: ${{matrix.skip-repo-setup}}
+          create-release: ${{matrix.create-release}}
+          create-release-as-draft: ${{matrix.create-release-as-draft}}
+          major-release-title: ${{matrix.major-release-title}}
+          major-release-body: ${{matrix.major-release-body}}
+          minor-release-title: ${{matrix.minor-release-title}}
+          minor-release-body: ${{matrix.minor-release-body}}
+          github-token: ${{secrets.GITHUB_TOKEN}}
           dry-run: true
         id: create-tags
       - name: Check executed commands
         run: |
-          ./__test__/bin/generate_expected_commands.sh ${{matrix.tag}} ${{matrix.update-major}} ${{matrix.update-minor}} ${{matrix.skip-repo-setup}} > expected.txt
+          ./__test__/bin/generate_expected_commands.sh \
+            ${{matrix.tag}} \
+            ${{matrix.update-major}} \
+            ${{matrix.update-minor}} \
+            ${{matrix.skip-repo-setup}} \
+            ${{matrix.create-release}} \
+            ${{matrix.create-release-as-draft}} \
+            ${{matrix.major-release-title}} \
+            ${{matrix.major-release-body}} \
+            ${{matrix.minor-release-title}} \
+            ${{matrix.minor-release-body}} \
+          > expected.txt
           printf "${{steps.create-tags.outputs.executed-commands}}\n" > actual.txt
           git diff --no-index -- expected.txt actual.txt
 
@@ -78,6 +107,12 @@ jobs:
         update-major: [true, false]
         update-minor: [true, false]
         skip-repo-setup: [true, false]
+        create-release: [true, false]
+        create-release-as-draft: [true, false]
+        major-release-title: ['Major ${version}', 'Another major ${version} title']
+        major-release-body: ['Major ${version} body', 'Another major ${version} body ${version}']
+        minor-release-title: ['Minor ${version}', 'Another minor ${version} title']
+        minor-release-body: ['Minor ${version} body', 'Another minor ${version} body ${version}']
     runs-on: ubuntu-latest
     steps:
       - run: test "${{secrets.ACTIONS_STEP_DEBUG}}" == 'true'
@@ -89,13 +124,31 @@ jobs:
           prefix-regex: '(v|x)?'
           suffix-regex: 'd?'
           skip-repo-setup: ${{matrix.skip-repo-setup}}
+          create-release: ${{matrix.create-release}}
+          create-release-as-draft: ${{matrix.create-release-as-draft}}
+          major-release-title: ${{matrix.major-release-title}}
+          major-release-body: ${{matrix.major-release-body}}
+          minor-release-title: ${{matrix.minor-release-title}}
+          minor-release-body: ${{matrix.minor-release-body}}
+          github-token: ${{secrets.GITHUB_TOKEN}}
           dry-run: true
         env:
           TEST_GITHUB_REF: refs/tags/${{matrix.tag}}
         id: create-tags
       - name: Check executed commands
         run: |
-          ./__test__/bin/generate_expected_commands.sh ${{matrix.tag}} ${{matrix.update-major}} ${{matrix.update-minor}} ${{matrix.skip-repo-setup}} > expected.txt
+          ./__test__/bin/generate_expected_commands.sh \
+            ${{matrix.tag}} \
+            ${{matrix.update-major}} \
+            ${{matrix.update-minor}} \
+            ${{matrix.skip-repo-setup}} \
+            ${{matrix.create-release}} \
+            ${{matrix.create-release-as-draft}} \
+            ${{matrix.major-release-title}} \
+            ${{matrix.major-release-body}} \
+            ${{matrix.minor-release-title}} \
+            ${{matrix.minor-release-body}} \
+          > expected.txt
           printf "${{steps.create-tags.outputs.executed-commands}}\n" > actual.txt
           git diff --no-index -- expected.txt actual.txt
 
