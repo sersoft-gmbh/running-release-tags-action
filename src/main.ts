@@ -180,10 +180,16 @@ async function main() {
                     ]);
                 }
             }
-            await Promise.all([
-                createReleaseIfNeeded(updateMajor, majorRelease, majorTag),
-                createReleaseIfNeeded(updateMinor, minorRelease, minorTag),
-            ]);
+            if (!dryRun) {
+                await Promise.all([
+                    createReleaseIfNeeded(updateMajor, majorRelease, majorTag),
+                    createReleaseIfNeeded(updateMinor, minorRelease, minorTag),
+                ]);
+            } else {
+                // In dry-run mode, the order of outputs matters. Promise.all doesn't guarantee any order, though.
+                await createReleaseIfNeeded(updateMajor, majorRelease, majorTag);
+                await createReleaseIfNeeded(updateMinor, minorRelease, minorTag);
+            }
         });
     }
 
