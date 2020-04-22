@@ -26007,6 +26007,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(__webpack_require__(827));
 const exec = __importStar(__webpack_require__(120));
 const github = __importStar(__webpack_require__(148));
+const request_error_1 = __webpack_require__(717);
 async function runCmd(cmd, args, failOnStdErr = true) {
     let stdOut = '';
     await exec.exec(cmd, args, {
@@ -26126,19 +26127,21 @@ async function main() {
             async function createReleaseIfNeeded(flag, release, tag) {
                 if (!flag || !release)
                     return;
-                let needsRelease;
-                if (!dryRun) {
-                    needsRelease = await octokit.repos.getReleaseByTag({
-                        owner: github.context.repo.owner,
-                        repo: github.context.repo.repo,
-                        tag: tag
-                    }).then(r => r.status != 200).catch(e => e.number == 404);
-                }
-                else {
+                let needsRelease = await octokit.repos.getReleaseByTag({
+                    owner: github.context.repo.owner,
+                    repo: github.context.repo.repo,
+                    tag: tag
+                }).then(r => r.status != 200).catch(e => {
+                    if (e instanceof request_error_1.RequestError && e.status == 404) {
+                        return Promise.resolve(true);
+                    }
+                    return Promise.reject(e);
+                });
+                core.debug(`Check if ${tag} needs a release says -> ${needsRelease}`);
+                if (dryRun) {
                     dryRunCmd(['github', 'get-release-by-tag', tag]);
                     needsRelease = true;
                 }
-                core.debug(`Check if ${tag} needs a release says -> ${needsRelease}`);
                 if (!needsRelease)
                     return;
                 function releaseText(template, tag) {
