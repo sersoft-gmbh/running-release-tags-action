@@ -84,4 +84,5 @@ Use the following snippet in a Swift package repository to generate jazzy docs f
 uses: sersoft-gmbh/running-release-tags-action@v1
 with:
   tag: 1.2.3
+  github-token: ${{secrets.GITHUB_TOKEN}}
 ```
