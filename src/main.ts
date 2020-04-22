@@ -178,7 +178,7 @@ async function main() {
                 if (!dryRun) {
                     core.debug(`Creating release for ${tag}...`);
                     const response = await octokit.repos.createRelease(requestParams);
-                    core.debug(`Created release (status ${response.status} with id ${response.data.id}.`);
+                    core.debug(`Created release (status ${response.status}) with id ${response.data.id}.`);
                 } else {
                     dryRunCmd([
                         'github', 'create-release',
