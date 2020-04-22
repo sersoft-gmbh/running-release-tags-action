@@ -45,7 +45,7 @@ jobs:
             '${version} Minor Release Track' \
             'This release tracks the latest ${version} minor release (${version}.x).' \
           > expected.txt
-          printf "${{steps.create-tags.outputs.executed-commands}}\n" > actual.txt
+          echo "${{steps.create-tags.outputs.executed-commands}}" > actual.txt
           git diff --no-index -- expected.txt actual.txt
 
   test-customized:
@@ -95,7 +95,7 @@ jobs:
             '${{matrix.release-title}}' \
             '${{matrix.release-body}}' \
           > expected.txt
-          printf '${{steps.create-tags.outputs.executed-commands}}\n' > actual.txt
+          echo '${{steps.create-tags.outputs.executed-commands}}' > actual.txt
           git diff --no-index -- expected.txt actual.txt
 
   test-from-env:
@@ -146,7 +146,7 @@ jobs:
             '${{matrix.release-title}}' \
             '${{matrix.release-body}}' \
           > expected.txt
-          printf '${{steps.create-tags.outputs.executed-commands}}\n' > actual.txt
+          echo '${{steps.create-tags.outputs.executed-commands}}' > actual.txt
           git diff --no-index -- expected.txt actual.txt
 
   test-invalid:
