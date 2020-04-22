@@ -57,8 +57,8 @@ jobs:
         skip-repo-setup: [true, false]
         create-release: [true, false]
         create-release-as-draft: [true, false]
-        release-title: ['Release ${version}', 'Another ${version} title']
-        release-body: ['Release ${version} body', 'Another ${version} body ${version}']
+        release-title: ['Release ${version}']
+        release-body: ['Release ${version} body ${version}']
     runs-on: ubuntu-latest
     steps:
       - run: test "${{secrets.ACTIONS_STEP_DEBUG}}" == 'true'
@@ -107,8 +107,8 @@ jobs:
         skip-repo-setup: [true, false]
         create-release: [true, false]
         create-release-as-draft: [true, false]
-        release-title: ['Release ${version}', 'Another ${version} title']
-        release-body: ['Release ${version} body', 'Another ${version} body ${version}']
+        release-title: ['Release ${version}']
+        release-body: ['Release ${version} body ${version}']
     runs-on: ubuntu-latest
     steps:
       - run: test "${{secrets.ACTIONS_STEP_DEBUG}}" == 'true'
