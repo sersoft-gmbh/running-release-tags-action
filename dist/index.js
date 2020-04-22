@@ -26126,14 +26126,19 @@ async function main() {
             async function createReleaseIfNeeded(flag, release, tag) {
                 if (!flag || !release)
                     return;
-                if (dryRun)
+                let needsRelease;
+                if (!dryRun) {
+                    needsRelease = await octokit.repos.getReleaseByTag({
+                        owner: github.context.repo.owner,
+                        repo: github.context.repo.repo,
+                        tag: tag
+                    }).then(r => r.status != 200).catch(e => e.number == 404);
+                }
+                else {
                     dryRunCmd(['github', 'get-release-by-tag', tag]);
-                const needsRelease = await octokit.repos.getReleaseByTag({
-                    owner: github.context.repo.owner,
-                    repo: github.context.repo.repo,
-                    tag: tag
-                }).then(r => r.status != 200).catch(e => e.number == 404);
-                if (!needsRelease && !dryRun)
+                    needsRelease = true;
+                }
+                if (!needsRelease)
                     return;
                 function releaseText(template, tag) {
                     return template.split('${version}').join(tag);
@@ -26154,7 +26159,8 @@ async function main() {
                     dryRunCmd([
                         'github', 'create-release',
                         requestParams.tag_name,
-                        requestParams.name || "", requestParams.body || '',
+                        requestParams.name || '',
+                        requestParams.body || '',
                         `${requestParams.draft || false}`
                     ]);
                 }
