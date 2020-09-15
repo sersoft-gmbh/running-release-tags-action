@@ -56,7 +56,7 @@ inputs:
     description: The token with which to authenticate against GitHub. Only required if releases should be created.
     required: false
   dry-run:
-    description: [TEST ONLY]: Whether or not commands should simply be printed instead of executed. Only used in tests.
+    description: '<TEST ONLY> Whether the commands should only be printed but not actually run. Only used in test.'
     required: false
 runs:
   using: node12
