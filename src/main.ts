@@ -3,7 +3,6 @@ import * as exec from '@actions/exec';
 import * as github from '@actions/github';
 import { Octokit } from '@octokit/rest';
 import { RequestError } from '@octokit/request-error';
-import {RequestOptions} from "https";
 
 interface IReleaseParameters {
     title: string;
@@ -166,7 +165,7 @@ async function main() {
                 function releaseText(template: string, tag: string): string {
                     return template.split('${version}').join(tag);
                 }
-                const requestParams: (RequestOptions & Octokit.ReposCreateReleaseParams) = {
+                const requestParams: (Octokit.RequestOptions & Octokit.ReposCreateReleaseParams) = {
                     owner: github.context.repo.owner,
                     repo: github.context.repo.repo,
                     target_commitish: github.context.sha,
