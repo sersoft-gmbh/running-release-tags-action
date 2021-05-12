@@ -1,7 +1,6 @@
 import * as core from '@actions/core';
 import * as exec from '@actions/exec';
 import * as github from '@actions/github';
-import { Octokit } from '@octokit/rest';
 import { RequestError } from '@octokit/request-error';
 
 interface IReleaseParameters {
@@ -141,7 +140,7 @@ async function main() {
 
     if (createRelease) {
         await core.group('Create releases', async () => {
-            const octokit = new github.GitHub(githubToken);
+            const octokit = github.getOctokit(githubToken);
             async function createReleaseIfNeeded(flag: boolean, release: (IReleaseParameters | null), tag: string) {
                 if (!flag || !release) return;
                 let needsRelease: boolean;
@@ -165,7 +164,8 @@ async function main() {
                 function releaseText(template: string, tag: string): string {
                     return template.split('${version}').join(tag);
                 }
-                const requestParams: (Octokit.RequestOptions & Octokit.ReposCreateReleaseParams) = {
+
+                const requestParams = {
                     owner: github.context.repo.owner,
                     repo: github.context.repo.repo,
                     target_commitish: github.context.sha,
