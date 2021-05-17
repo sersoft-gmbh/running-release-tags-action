@@ -145,16 +145,17 @@ async function main() {
                 if (!flag || !release) return;
                 let needsRelease: boolean;
                 if (!dryRun) {
-                    needsRelease = await octokit.repos.getReleaseByTag({
+                    needsRelease = await octokit.rest.repos.getReleaseByTag({
                         owner: github.context.repo.owner,
                         repo: github.context.repo.repo,
                         tag: tag
-                    }).then(r => r.status != 200).catch(e => {
-                        if (e instanceof RequestError && e.status == 404) {
-                            return Promise.resolve(true);
-                        }
-                        return Promise.reject(e);
-                    });
+                    }).then(r => r.status != 200)
+                        .catch(e => {
+                            if (e instanceof RequestError && e.status == 404) {
+                                return Promise.resolve(true);
+                            }
+                            return Promise.reject(e);
+                        });
                     core.debug(`Check if ${tag} needs a release says -> ${needsRelease}`);
                 } else {
                     dryRunCmd(['github', 'get-release-by-tag', tag]);
@@ -176,7 +177,7 @@ async function main() {
                 }
                 if (!dryRun) {
                     core.debug(`Creating release for ${tag}...`);
-                    const response = await octokit.repos.createRelease(requestParams);
+                    const response = await octokit.rest.repos.createRelease(requestParams);
                     core.debug(`Created release (status ${response.status}) with id ${response.data.id}.`);
                 } else {
                     dryRunCmd([
