@@ -79,7 +79,7 @@ The token with which to authenticate against GitHub. Only required if releases s
 
 ## Example Usage
 
-Use the following snippet in a Swift package repository to generate jazzy docs for all products of your Swift package:
+Use the following snippet to automatically update major and minor release tracks:
 ```yaml
 uses: sersoft-gmbh/running-release-tags-action@v1
 with:
