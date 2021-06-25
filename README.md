@@ -79,7 +79,7 @@ The token with which to authenticate against GitHub. Only required if releases s
 
 ## Example Usage
 
-Use the following snippet to automatically update major and minor release tracks:
+Use the following snippet to create a major and minor release for the tag `1.2.3`:
 ```yaml
 uses: sersoft-gmbh/running-release-tags-action@v1
 with:
