@@ -7335,7 +7335,8 @@ async function main() {
     core.startGroup('Validating input');
     // undocumented - for tests.
     let executedCommands = [];
-    const dryRun = core.isDebug() && core.getBooleanInput('dry-run');
+    // We cannot use `getBooleanInput` here, since it fails if not set.
+    const dryRun = core.isDebug() && core.getInput('dry-run') == 'true';
     const tag = core.getInput('tag') || parseTag(dryRun);
     if (!tag) {
         throw new Error("Input `tag` was not set and `${{github.ref}}` is not a valid tag ref!");
