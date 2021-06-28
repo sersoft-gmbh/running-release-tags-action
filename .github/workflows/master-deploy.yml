@@ -42,7 +42,7 @@ jobs:
         id: create-tags
       - name: Check executed commands
         run: |
-          ./__test__/bin/generate_expected_commands.sh '1.2.3' true true false true false \
+          ./__test__/bin/generate_expected_commands.sh '1.2.3' true true false true false false \
             '${version} Major Release Track' \
             'This release tracks the latest ${version} major release (${version}.x.y).' \
             '${version} Minor Release Track' \
@@ -61,6 +61,7 @@ jobs:
         skip-repo-setup: [true, false]
         create-release: [true, false]
         create-release-as-draft: [true, false]
+        update-full-release: [true, false]
         release-title: ['Release ${version}']
         release-body: ['Release ${version} body ${version}']
     runs-on: ubuntu-latest
@@ -81,6 +82,7 @@ jobs:
           major-release-body: ${{matrix.release-body}}
           minor-release-title: ${{matrix.release-title}}
           minor-release-body: ${{matrix.release-body}}
+          update-full-release: ${{matrix.update-full-release}}
           github-token: ${{secrets.GITHUB_TOKEN}}
           dry-run: true
         id: create-tags
@@ -93,6 +95,7 @@ jobs:
             '${{matrix.skip-repo-setup}}' \
             '${{matrix.create-release}}' \
             '${{matrix.create-release-as-draft}}' \
+            '${{matrix.update-full-release}}' \
             '${{matrix.release-title}}' \
             '${{matrix.release-body}}' \
             '${{matrix.release-title}}' \
@@ -113,6 +116,7 @@ jobs:
         create-release-as-draft: [true, false]
         release-title: ['Release ${version}']
         release-body: ['Release ${version} body ${version}']
+        update-full-release: [true, false]
     runs-on: ubuntu-latest
     steps:
       - run: test '${{secrets.ACTIONS_STEP_DEBUG}}' == 'true'
@@ -130,6 +134,7 @@ jobs:
           major-release-body: ${{matrix.release-body}}
           minor-release-title: ${{matrix.release-title}}
           minor-release-body: ${{matrix.release-body}}
+          update-full-release: ${{matrix.update-full-release}}
           github-token: ${{secrets.GITHUB_TOKEN}}
           dry-run: true
         env:
@@ -144,6 +149,7 @@ jobs:
             '${{matrix.skip-repo-setup}}' \
             '${{matrix.create-release}}' \
             '${{matrix.create-release-as-draft}}' \
+            '${{matrix.update-full-release}}' \
             '${{matrix.release-title}}' \
             '${{matrix.release-body}}' \
             '${{matrix.release-title}}' \

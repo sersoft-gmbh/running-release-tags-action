@@ -50,7 +50,7 @@ Default: `true`
 
 ### `create-release-as-draft`:
 
-Whether to create the github releases as draft.<br/>
+Whether to create the GitHub releases as draft.<br/>
 Default: `false`
 
 ### `major-release-title`
@@ -67,12 +67,18 @@ Default: `'This release tracks the latest ${version} major release (${version}.x
 
 The title of the minor release. The placeholder `${version}` is replaced by the minor tag name.<br/>
 Default: `'${version} Minor Release Track'`
-  
+
 ### `minor-release-body`
 
 The body of the minor release. The placeholder `${version}` is replaced by the minor tag name.<br/>
 Default: `'This release tracks the latest ${version} minor release (${version}.x).'`
-  
+
+### `update-full-release`
+
+Whether to update the full release (for `tag`) to mark it as latest release.<br/>
+This is useful if the release for `tag` should remain the "Latest Release" even though the major / minor releases tracks created by this action are actually created / updated _after_ the initial release.<br/>
+Default: `false`
+
 ### `github-token`
 
 The token with which to authenticate against GitHub. Only required if releases should be created. Can be set to `${{secrets.GITHUB_TOKEN}}`.
