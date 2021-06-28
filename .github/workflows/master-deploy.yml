@@ -58,12 +58,23 @@ jobs:
         tag: ['v1.2.3', 'x2.0.0', '3.2.7d', '12.43.1']
         update-major: [true, false]
         update-minor: [true, false]
-        skip-repo-setup: [true, false]
+        skip-repo-setup: [false]
         create-release: [true, false]
         create-release-as-draft: [true, false]
-        update-full-release: [true, false]
+        update-full-release: [false]
         release-title: ['Release ${version}']
         release-body: ['Release ${version} body ${version}']
+        include:
+          - tag: 'v1.2.3'
+            update-major: true
+            update-minor: true
+            skip-repo-setup: true
+            create-release: true
+            create-release-as-draft: false
+            update-full-release: [ true ]
+            release-title: 'Release ${version}'
+            release-body: 'Release ${version} body ${version}'
+
     runs-on: ubuntu-latest
     steps:
       - run: test '${{secrets.ACTIONS_STEP_DEBUG}}' == 'true'
@@ -109,14 +120,14 @@ jobs:
     strategy:
       matrix:
         tag: ['v1.2.3', 'x2.0.0', '3.2.7d', '12.43.1']
-        update-major: [true, false]
-        update-minor: [true, false]
-        skip-repo-setup: [true, false]
-        create-release: [true, false]
-        create-release-as-draft: [true, false]
+        update-major: [true]
+        update-minor: [true]
+        skip-repo-setup: [false]
+        create-release: [true]
+        create-release-as-draft: [false]
+        update-full-release: [false]
         release-title: ['Release ${version}']
         release-body: ['Release ${version} body ${version}']
-        update-full-release: [true, false]
     runs-on: ubuntu-latest
     steps:
       - run: test '${{secrets.ACTIONS_STEP_DEBUG}}' == 'true'
