@@ -1538,29 +1538,18 @@ exports.checkBypass = checkBypass;
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-function _defineProperty(obj, key, value) {
-  if (key in obj) {
-    Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-  } else {
-    obj[key] = value;
-  }
-
-  return obj;
-}
-
 function ownKeys(object, enumerableOnly) {
   var keys = Object.keys(object);
 
   if (Object.getOwnPropertySymbols) {
     var symbols = Object.getOwnPropertySymbols(object);
-    if (enumerableOnly) symbols = symbols.filter(function (sym) {
-      return Object.getOwnPropertyDescriptor(object, sym).enumerable;
-    });
+
+    if (enumerableOnly) {
+      symbols = symbols.filter(function (sym) {
+        return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+      });
+    }
+
     keys.push.apply(keys, symbols);
   }
 
@@ -1587,9 +1576,25 @@ function _objectSpread2(target) {
   return target;
 }
 
+function _defineProperty(obj, key, value) {
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+
+  return obj;
+}
+
 const Endpoints = {
   actions: {
     addSelectedRepoToOrgSecret: ["PUT /orgs/{org}/actions/secrets/{secret_name}/repositories/{repository_id}"],
+    approveWorkflowRun: ["POST /repos/{owner}/{repo}/actions/runs/{run_id}/approve"],
     cancelWorkflowRun: ["POST /repos/{owner}/{repo}/actions/runs/{run_id}/cancel"],
     createOrUpdateEnvironmentSecret: ["PUT /repositories/{repository_id}/environments/{environment_name}/secrets/{secret_name}"],
     createOrUpdateOrgSecret: ["PUT /orgs/{org}/actions/secrets/{secret_name}"],
@@ -1703,6 +1708,11 @@ const Endpoints = {
         previews: ["corsair"]
       }
     }],
+    createContentAttachmentForRepo: ["POST /repos/{owner}/{repo}/content_references/{content_reference_id}/attachments", {
+      mediaType: {
+        previews: ["corsair"]
+      }
+    }],
     createFromManifest: ["POST /app-manifests/{code}/conversions"],
     createInstallationAccessToken: ["POST /app/installations/{installation_id}/access_tokens"],
     deleteAuthorization: ["DELETE /applications/{client_id}/grant"],
@@ -1765,8 +1775,11 @@ const Endpoints = {
     }],
     getAnalysis: ["GET /repos/{owner}/{repo}/code-scanning/analyses/{analysis_id}"],
     getSarif: ["GET /repos/{owner}/{repo}/code-scanning/sarifs/{sarif_id}"],
+    listAlertInstances: ["GET /repos/{owner}/{repo}/code-scanning/alerts/{alert_number}/instances"],
     listAlertsForRepo: ["GET /repos/{owner}/{repo}/code-scanning/alerts"],
-    listAlertsInstances: ["GET /repos/{owner}/{repo}/code-scanning/alerts/{alert_number}/instances"],
+    listAlertsInstances: ["GET /repos/{owner}/{repo}/code-scanning/alerts/{alert_number}/instances", {}, {
+      renamed: ["codeScanning", "listAlertInstances"]
+    }],
     listRecentAnalyses: ["GET /repos/{owner}/{repo}/code-scanning/analyses"],
     updateAlert: ["PATCH /repos/{owner}/{repo}/code-scanning/alerts/{alert_number}"],
     uploadSarif: ["POST /repos/{owner}/{repo}/code-scanning/sarifs"]
@@ -2248,6 +2261,11 @@ const Endpoints = {
         previews: ["squirrel-girl"]
       }
     }],
+    createForRelease: ["POST /repos/{owner}/{repo}/releases/{release_id}/reactions", {
+      mediaType: {
+        previews: ["squirrel-girl"]
+      }
+    }],
     createForTeamDiscussionCommentInOrg: ["POST /orgs/{org}/teams/{team_slug}/discussions/{discussion_number}/comments/{comment_number}/reactions", {
       mediaType: {
         previews: ["squirrel-girl"]
@@ -2348,6 +2366,7 @@ const Endpoints = {
       }
     }],
     compareCommits: ["GET /repos/{owner}/{repo}/compare/{base}...{head}"],
+    compareCommitsWithBasehead: ["GET /repos/{owner}/{repo}/compare/{basehead}"],
     createCommitComment: ["POST /repos/{owner}/{repo}/commits/{commit_sha}/comments"],
     createCommitSignatureProtection: ["POST /repos/{owner}/{repo}/branches/{branch}/protection/required_signatures", {
       mediaType: {
@@ -2671,7 +2690,7 @@ const Endpoints = {
   }
 };
 
-const VERSION = "5.1.1";
+const VERSION = "5.3.4";
 
 function endpointsToMethods(octokit, endpointsMap) {
   const newMethods = {};
@@ -3047,13 +3066,15 @@ var isPlainObject = __webpack_require__(291);
 var nodeFetch = _interopDefault(__webpack_require__(770));
 var requestError = __webpack_require__(717);
 
-const VERSION = "5.4.15";
+const VERSION = "5.6.0";
 
 function getBufferResponse(response) {
   return response.arrayBuffer();
 }
 
 function fetchWrapper(requestOptions) {
+  const log = requestOptions.request && requestOptions.request.log ? requestOptions.request.log : console;
+
   if (isPlainObject.isPlainObject(requestOptions.body) || Array.isArray(requestOptions.body)) {
     requestOptions.body = JSON.stringify(requestOptions.body);
   }
@@ -3069,12 +3090,18 @@ function fetchWrapper(requestOptions) {
     redirect: requestOptions.redirect
   }, // `requestOptions.request.agent` type is incompatible
   // see https://github.com/octokit/types.ts/pull/264
-  requestOptions.request)).then(response => {
+  requestOptions.request)).then(async response => {
     url = response.url;
     status = response.status;
 
     for (const keyAndValue of response.headers) {
       headers[keyAndValue[0]] = keyAndValue[1];
+    }
+
+    if ("deprecation" in headers) {
+      const matches = headers.link && headers.link.match(/<([^>]+)>; rel="deprecation"/);
+      const deprecationLink = matches && matches.pop();
+      log.warn(`[@octokit/request] "${requestOptions.method} ${requestOptions.url}" is deprecated. It is scheduled to be removed on ${headers.sunset}${deprecationLink ? `. See ${deprecationLink}` : ""}`);
     }
 
     if (status === 204 || status === 205) {
@@ -3088,49 +3115,43 @@ function fetchWrapper(requestOptions) {
       }
 
       throw new requestError.RequestError(response.statusText, status, {
-        headers,
+        response: {
+          url,
+          status,
+          headers,
+          data: undefined
+        },
         request: requestOptions
       });
     }
 
     if (status === 304) {
       throw new requestError.RequestError("Not modified", status, {
-        headers,
+        response: {
+          url,
+          status,
+          headers,
+          data: await getResponseData(response)
+        },
         request: requestOptions
       });
     }
 
     if (status >= 400) {
-      return response.text().then(message => {
-        const error = new requestError.RequestError(message, status, {
+      const data = await getResponseData(response);
+      const error = new requestError.RequestError(toErrorMessage(data), status, {
+        response: {
+          url,
+          status,
           headers,
-          request: requestOptions
-        });
-
-        try {
-          let responseBody = JSON.parse(error.message);
-          Object.assign(error, responseBody);
-          let errors = responseBody.errors; // Assumption `errors` would always be in Array format
-
-          error.message = error.message + ": " + errors.map(JSON.stringify).join(", ");
-        } catch (e) {// ignore, see octokit/rest.js#684
-        }
-
-        throw error;
+          data
+        },
+        request: requestOptions
       });
+      throw error;
     }
 
-    const contentType = response.headers.get("content-type");
-
-    if (/application\/json/.test(contentType)) {
-      return response.json();
-    }
-
-    if (!contentType || /^text\/|charset=utf-8$/.test(contentType)) {
-      return response.text();
-    }
-
-    return getBufferResponse(response);
+    return getResponseData(response);
   }).then(data => {
     return {
       status,
@@ -3139,15 +3160,40 @@ function fetchWrapper(requestOptions) {
       data
     };
   }).catch(error => {
-    if (error instanceof requestError.RequestError) {
-      throw error;
-    }
-
+    if (error instanceof requestError.RequestError) throw error;
     throw new requestError.RequestError(error.message, 500, {
-      headers,
       request: requestOptions
     });
   });
+}
+
+async function getResponseData(response) {
+  const contentType = response.headers.get("content-type");
+
+  if (/application\/json/.test(contentType)) {
+    return response.json();
+  }
+
+  if (!contentType || /^text\/|charset=utf-8$/.test(contentType)) {
+    return response.text();
+  }
+
+  return getBufferResponse(response);
+}
+
+function toErrorMessage(data) {
+  if (typeof data === "string") return data; // istanbul ignore else - just in case
+
+  if ("message" in data) {
+    if (Array.isArray(data.errors)) {
+      return `${data.message}: ${data.errors.map(JSON.stringify).join(", ")}`;
+    }
+
+    return data.message;
+  } // istanbul ignore next - just in case
+
+
+  return `Unknown error: ${JSON.stringify(data)}`;
 }
 
 function withDefaults(oldEndpoint, newDefaults) {
@@ -3799,7 +3845,8 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 var deprecation = __webpack_require__(597);
 var once = _interopDefault(__webpack_require__(870));
 
-const logOnce = once(deprecation => console.warn(deprecation));
+const logOnceCode = once(deprecation => console.warn(deprecation));
+const logOnceHeaders = once(deprecation => console.warn(deprecation));
 /**
  * Error with extra properties to help with debugging
  */
@@ -3816,14 +3863,17 @@ class RequestError extends Error {
 
     this.name = "HttpError";
     this.status = statusCode;
-    Object.defineProperty(this, "code", {
-      get() {
-        logOnce(new deprecation.Deprecation("[@octokit/request-error] `error.code` is deprecated, use `error.status`."));
-        return statusCode;
-      }
+    let headers;
 
-    });
-    this.headers = options.headers || {}; // redact request credentials without mutating original request options
+    if ("headers" in options && typeof options.headers !== "undefined") {
+      headers = options.headers;
+    }
+
+    if ("response" in options) {
+      this.response = options.response;
+      headers = options.response.headers;
+    } // redact request credentials without mutating original request options
+
 
     const requestCopy = Object.assign({}, options.request);
 
@@ -3838,7 +3888,22 @@ class RequestError extends Error {
     .replace(/\bclient_secret=\w+/g, "client_secret=[REDACTED]") // OAuth tokens can be passed as URL query parameters, although it is not recommended
     // see https://developer.github.com/v3/#oauth2-token-sent-in-a-header
     .replace(/\baccess_token=\w+/g, "access_token=[REDACTED]");
-    this.request = requestCopy;
+    this.request = requestCopy; // deprecations
+
+    Object.defineProperty(this, "code", {
+      get() {
+        logOnceCode(new deprecation.Deprecation("[@octokit/request-error] `error.code` is deprecated, use `error.status`."));
+        return statusCode;
+      }
+
+    });
+    Object.defineProperty(this, "headers", {
+      get() {
+        logOnceHeaders(new deprecation.Deprecation("[@octokit/request-error] `error.headers` is deprecated, use `error.response.headers`."));
+        return headers || {};
+      }
+
+    });
   }
 
 }
@@ -7016,8 +7081,9 @@ function _objectWithoutProperties(source, excluded) {
   return target;
 }
 
-const VERSION = "3.4.0";
+const VERSION = "3.5.1";
 
+const _excluded = ["authStrategy"];
 class Octokit {
   constructor(options = {}) {
     const hook = new beforeAfterHook.Collection();
@@ -7079,7 +7145,7 @@ class Octokit {
       const {
         authStrategy
       } = options,
-            otherOptions = _objectWithoutProperties(options, ["authStrategy"]);
+            otherOptions = _objectWithoutProperties(options, _excluded);
 
       const auth = authStrategy(Object.assign({
         request: this.request,
@@ -7202,33 +7268,88 @@ function parseTag(dryRun) {
         core.debug(`${envVar} is not set!`);
         return null;
     }
-    const ref = refVar;
     const prefix = "refs/tags/";
-    if (!ref.startsWith(prefix)) {
-        core.debug(`${ref} is not a valid tag ref!`);
+    if (!refVar.startsWith(prefix)) {
+        core.debug(`${refVar} is not a valid tag ref!`);
         return null;
     }
-    return ref.substring(prefix.length);
+    return refVar.substring(prefix.length);
+}
+async function _getReleaseByTag(octokit, tag) {
+    return await octokit.rest.repos.getReleaseByTag({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        tag: tag
+    })
+        .then(r => r.status == 200 ? r.data : null)
+        .catch(e => {
+        if (e instanceof request_error_1.RequestError && e.status == 404) {
+            return Promise.resolve(null);
+        }
+        return Promise.reject(e);
+    });
+}
+async function createReleaseIfNeeded(octokit, flag, release, tag, dryRun, dryRunGitHubCmd) {
+    if (!flag || !release)
+        return;
+    let needsRelease;
+    if (!dryRun) {
+        const release = await _getReleaseByTag(octokit, tag);
+        needsRelease = release == null;
+        core.debug(`Check if ${tag} needs a release says -> ${needsRelease}`);
+    }
+    else {
+        dryRunGitHubCmd(['get-release-by-tag', tag]);
+        needsRelease = true;
+    }
+    if (!needsRelease)
+        return;
+    function releaseText(template, tag) {
+        return template.split('${version}').join(tag);
+    }
+    const requestParams = {
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        target_commitish: github.context.sha,
+        tag_name: tag,
+        name: releaseText(release.title, tag),
+        body: releaseText(release.body, tag),
+        draft: release.isDraft
+    };
+    if (!dryRun) {
+        core.debug(`Creating release for ${tag}...`);
+        const response = await octokit.rest.repos.createRelease(requestParams);
+        core.debug(`Created release (status ${response.status}) with id ${response.data.id}.`);
+    }
+    else {
+        dryRunGitHubCmd([
+            'create-release',
+            requestParams.tag_name,
+            requestParams.name || '',
+            requestParams.body || '',
+            `${requestParams.draft || false}`
+        ]);
+    }
 }
 async function main() {
     core.startGroup('Validating input');
     // undocumented - for tests.
     let executedCommands = [];
-    const dryRun = core.isDebug() && core.getInput('dry-run') == 'true';
+    const dryRun = core.isDebug() && core.getBooleanInput('dry-run');
     const tag = core.getInput('tag') || parseTag(dryRun);
     if (!tag) {
         throw new Error("Input `tag` was not set and `${{github.ref}}` is not a valid tag ref!");
     }
     const prefixRegex = core.getInput('prefix-regex') || '';
     const suffixRegex = core.getInput('suffix-regex') || '';
-    const failOnNonSemVerTag = core.getInput('fail-on-non-semver-tag', { required: true }) == 'true';
-    const updateMajor = core.getInput('update-major', { required: true }) == 'true';
-    const updateMinor = core.getInput('update-minor', { required: true }) == 'true';
-    const skipRepoSetup = core.getInput('skip-repo-setup', { required: true }) == 'true';
-    const createRelease = core.getInput('create-release', { required: true }) == 'true';
+    const failOnNonSemVerTag = core.getBooleanInput('fail-on-non-semver-tag', { required: true });
+    const updateMajor = core.getBooleanInput('update-major', { required: true });
+    const updateMinor = core.getBooleanInput('update-minor', { required: true });
+    const skipRepoSetup = core.getBooleanInput('skip-repo-setup', { required: true });
+    const createRelease = core.getBooleanInput('create-release', { required: true });
     let majorRelease, minorRelease;
     if (createRelease && (updateMajor || updateMinor)) {
-        const createAsDraft = core.getInput('create-release-as-draft', { required: true }) == 'true';
+        const createAsDraft = core.getBooleanInput('create-release-as-draft', { required: true });
         majorRelease = updateMajor ? getReleaseParameters('major', createAsDraft) : null;
         minorRelease = updateMinor ? getReleaseParameters('minor', createAsDraft) : null;
     }
@@ -7236,12 +7357,16 @@ async function main() {
         majorRelease = null;
         minorRelease = null;
     }
+    const updateFullRelease = core.getBooleanInput('update-full-release', { required: true });
     const githubToken = core.getInput('github-token', { required: createRelease && (updateMajor || updateMinor) });
     core.endGroup();
     function dryRunCmd(cmd) {
         const command = cmd.join(' ');
         core.debug(`Would execute: \`${command}\``);
         executedCommands.push(command);
+    }
+    async function dryRunGitHub(cmd) {
+        dryRunCmd(['github'].concat(cmd));
     }
     async function runGit(cmd) {
         if (!dryRun) {
@@ -7294,67 +7419,66 @@ async function main() {
     if (createRelease) {
         await core.group('Create releases', async () => {
             const octokit = github.getOctokit(githubToken);
-            async function createReleaseIfNeeded(flag, release, tag) {
-                if (!flag || !release)
-                    return;
-                let needsRelease;
-                if (!dryRun) {
-                    needsRelease = await octokit.rest.repos.getReleaseByTag({
-                        owner: github.context.repo.owner,
-                        repo: github.context.repo.repo,
-                        tag: tag
-                    }).then(r => r.status != 200)
-                        .catch(e => {
-                        if (e instanceof request_error_1.RequestError && e.status == 404) {
-                            return Promise.resolve(true);
-                        }
-                        return Promise.reject(e);
-                    });
-                    core.debug(`Check if ${tag} needs a release says -> ${needsRelease}`);
-                }
-                else {
-                    dryRunCmd(['github', 'get-release-by-tag', tag]);
-                    needsRelease = true;
-                }
-                if (!needsRelease)
-                    return;
-                function releaseText(template, tag) {
-                    return template.split('${version}').join(tag);
-                }
-                const requestParams = {
-                    owner: github.context.repo.owner,
-                    repo: github.context.repo.repo,
-                    target_commitish: github.context.sha,
-                    tag_name: tag,
-                    name: releaseText(release.title, tag),
-                    body: releaseText(release.body, tag),
-                    draft: release.isDraft
-                };
-                if (!dryRun) {
-                    core.debug(`Creating release for ${tag}...`);
-                    const response = await octokit.rest.repos.createRelease(requestParams);
-                    core.debug(`Created release (status ${response.status}) with id ${response.data.id}.`);
-                }
-                else {
-                    dryRunCmd([
-                        'github', 'create-release',
-                        requestParams.tag_name,
-                        requestParams.name || '',
-                        requestParams.body || '',
-                        `${requestParams.draft || false}`
-                    ]);
-                }
-            }
             if (!dryRun) {
                 await Promise.all([
-                    createReleaseIfNeeded(updateMajor, majorRelease, majorTag),
-                    createReleaseIfNeeded(updateMinor, minorRelease, minorTag),
+                    createReleaseIfNeeded(octokit, updateMajor, majorRelease, majorTag, false, dryRunGitHub),
+                    createReleaseIfNeeded(octokit, updateMinor, minorRelease, minorTag, false, dryRunGitHub),
                 ]);
             }
             else {
                 // In dry-run mode, the order of outputs matters. Promise.all doesn't guarantee any order, though.
-                await createReleaseIfNeeded(updateMajor, majorRelease, majorTag);
-                await createReleaseIfNeeded(updateMinor, minorRelease, minorTag);
+                await createReleaseIfNeeded(octokit, updateMajor, majorRelease, majorTag, true, dryRunGitHub);
+                await createReleaseIfNeeded(octokit, updateMinor, minorRelease, minorTag, true, dryRunGitHub);
+            }
+        });
+    }
+    if (updateFullRelease) {
+        await core.group('Update full release', async () => {
+            var _a;
+            const octokit = github.getOctokit(githubToken);
+            let release;
+            if (!dryRun) {
+                release = await _getReleaseByTag(octokit, tag);
+            }
+            else {
+                release = {
+                    id: 1234,
+                    tag_name: tag,
+                    name: 'Dry Run Testing',
+                    body: 'Dry Run Testing Body',
+                };
+                await dryRunGitHub(['get-release-by-tag', tag]);
+            }
+            if (!release) {
+                throw new Error(`Could not find an existing GitHub release for tag ${tag}`);
+            }
+            // To mark the full release as latest, we simply update it by appending `&nbsp`.
+            const appendUpdate = {
+                owner: github.context.repo.owner,
+                repo: github.context.repo.repo,
+                release_id: release.id,
+                body: ((_a = release.body) !== null && _a !== void 0 ? _a : '') + '&nbsp;'
+            };
+            const restoreUpdate = {
+                owner: github.context.repo.owner,
+                repo: github.context.repo.repo,
+                release_id: release.id,
+                body: release.body
+            };
+            if (!dryRun) {
+                await octokit.rest.repos.updateRelease(appendUpdate);
+                await octokit.rest.repos.updateRelease(restoreUpdate);
+            }
+            else {
+                async function dryRunUpdate(update) {
+                    await dryRunGitHub([
+                        'update-release',
+                        update.release_id.toString(),
+                        update.body || '',
+                    ]);
+                }
+                await dryRunUpdate(appendUpdate);
+                await dryRunUpdate(restoreUpdate);
             }
         });
     }
