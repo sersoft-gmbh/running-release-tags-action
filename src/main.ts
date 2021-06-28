@@ -117,7 +117,7 @@ async function main() {
     core.startGroup('Validating input');
     // undocumented - for tests.
     let executedCommands: string[] = [];
-    const dryRun = core.isDebug() && core.getBooleanInput('dry-run');
+    const dryRun = core.isDebug() && core.getInput('dry-run') == 'true';
 
     const tag = core.getInput('tag') || parseTag(dryRun);
     if (!tag) {
