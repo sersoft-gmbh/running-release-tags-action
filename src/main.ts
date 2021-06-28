@@ -1,8 +1,10 @@
 import * as core from '@actions/core';
 import * as exec from '@actions/exec';
 import * as github from '@actions/github';
+import { GitHub } from "@actions/github/lib/utils";
 import { RequestError } from '@octokit/request-error';
-import { Octokit } from '@octokit/rest';
+
+declare type GHOctoKit = InstanceType<typeof GitHub>;
 
 interface IReleaseParameters {
     title: string;
@@ -51,7 +53,7 @@ function parseTag(dryRun: boolean): (string | null) {
     return refVar.substring(prefix.length);
 }
 
-async function _getReleaseByTag(octokit: Octokit, tag: string): Promise<(IRelease | null)> {
+async function _getReleaseByTag(octokit: GHOctoKit, tag: string): Promise<(IRelease | null)> {
     return await octokit.rest.repos.getReleaseByTag({
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
@@ -66,7 +68,7 @@ async function _getReleaseByTag(octokit: Octokit, tag: string): Promise<(IReleas
         });
 }
 
-async function createReleaseIfNeeded(octokit: Octokit,
+async function createReleaseIfNeeded(octokit: GHOctoKit,
                                      flag: boolean,
                                      release: (IReleaseParameters | null),
                                      tag: string,
@@ -213,7 +215,7 @@ async function main() {
 
     if (createRelease) {
         await core.group('Create releases', async () => {
-            const octokit = github.getOctokit(githubToken) as Octokit;
+            const octokit = github.getOctokit(githubToken);
             if (!dryRun) {
                 await Promise.all([
                     createReleaseIfNeeded(octokit, updateMajor, majorRelease, majorTag, false, dryRunGitHub),
@@ -229,7 +231,7 @@ async function main() {
 
     if (updateFullRelease) {
         await core.group('Update full release', async () => {
-            const octokit = github.getOctokit(githubToken) as Octokit;
+            const octokit = github.getOctokit(githubToken);
             let release: IRelease | null;
             if (!dryRun) {
                 release = await _getReleaseByTag(octokit, tag);
