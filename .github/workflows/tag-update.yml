@@ -2,8 +2,7 @@ name: Update Release Tags
 
 on:
   release:
-    types:
-      - published
+    types: [ published ]
 
 jobs:
   update-tags:
