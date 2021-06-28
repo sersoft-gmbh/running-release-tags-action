@@ -36,7 +36,7 @@ jobs:
   test-customized:
     strategy:
       matrix:
-        tag: ['v1.2.3', 'v2.0.0', '3.2.7d', '12.43.1', 'x4.2.1']
+        tag: ['v1.2.3', 'x2.0.0', '3.2.7d', '12.43.1']
         update-major: [true, false]
         update-minor: [true, false]
         skip-repo-setup: [true, false]
@@ -94,7 +94,7 @@ jobs:
   test-from-env:
     strategy:
       matrix:
-        tag: ['v1.2.3', 'v2.0.0', '3.2.7d', '12.43.1', 'x4.2.1']
+        tag: ['v1.2.3', 'x2.0.0', '3.2.7d', '12.43.1']
         update-major: [true, false]
         update-minor: [true, false]
         skip-repo-setup: [true, false]
