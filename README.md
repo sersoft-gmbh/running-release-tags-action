@@ -77,6 +77,7 @@ Default: `'This release tracks the latest ${version} minor release (${version}.x
 
 Whether to update the full release (for `tag`) to mark it as latest release.<br/>
 This is useful if the release for `tag` should remain the "Latest Release" even though the major / minor releases tracks created by this action are actually created / updated _after_ the initial release.<br/>
+Note that if `github-token` is **not** `${{secrets.GITHUB_TOKEN}}` but rather a personal access token (PAT) instead, this can lead to workflow run cycles if this action is run when a releases is edited/updated!<br/>
 Default: `false`
 
 ### `github-token`
