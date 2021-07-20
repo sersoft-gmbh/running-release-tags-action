@@ -1,6 +1,6 @@
 # Release Tag Updater
 
-![Master Deploy](https://github.com/sersoft-gmbh/running-release-tags-action/workflows/Master%20Deploy/badge.svg)
+[![Deploy](https://github.com/sersoft-gmbh/running-release-tags-action/actions/workflows/main-deploy.yml/badge.svg)](https://github.com/sersoft-gmbh/running-release-tags-action/actions/workflows/main-deploy.yml)
 
 This action automatically updates "running release" major and major.minor tags and GitHub releases.
 
