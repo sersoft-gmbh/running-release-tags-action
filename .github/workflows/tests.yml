@@ -265,7 +265,7 @@ jobs:
             '${{env.INPUT_SKIP_REPO_SETUP}}' \
             '${{env.INPUT_CREATE_RELEASE}}' \
             '${{env.INPUT_CREATE_RELEASE_AS_DRAFT}}' \
-            '${{enf.update-full-release}}' \
+            '${{env.update-full-release}}' \
             '${{env.INPUT_RELEASE_TITLE}}' \
             '${{env.INPUT_RELEASE_BODY}}' \
             '${{env.INPUT_RELEASE_TITLE}}' \
