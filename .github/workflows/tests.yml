@@ -134,8 +134,8 @@ jobs:
           skip-repo-setup: ${{matrix.skip-repo-setup}}
           create-release: ${{matrix.create-release}}
           create-release-as-draft: ${{matrix.create-release-as-draft}}
-          major-release-title: ${{matrix.release-title}}
-          major-release-body: ${{matrix.release-body}}
+          major-release-title: ${{env.INPUT_RELEASE_TITLE}}
+          major-release-body: ${{env.INPUT_RELEASE_TITLE}}
           minor-release-title: ${{env.INPUT_RELEASE_TITLE}}
           minor-release-body: ${{env.INPUT_RELEASE_BODY}}
           update-full-release: ${{matrix.update-full-release}}
