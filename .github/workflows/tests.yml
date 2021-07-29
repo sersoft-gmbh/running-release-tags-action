@@ -67,22 +67,19 @@ jobs:
           github-token: ${{secrets.GITHUB_TOKEN}}
           dry-run: true
         id: create-tags-local
-      - id: create-tags
-        run: |
-          if [ '${{github.event_name}}' == 'push' ]; then
-            echo "::set-output name=executed-commands::${{steps.create-tags-master.outputs.executed-commands}}"
-          else
-            echo "::set-output name=executed-commands::${{steps.create-tags-local.outputs.executed-commands}}"
-          fi
       - name: Check executed commands
         run: |
-          ./__test__/bin/generate_expected_commands.sh '1.2.3' true true false true false false \
+          ./__test__/bin/generate_expected_commands.sh '${{env.INPUT_TAG}}' true true false true false false \
             '${version} Major Release Track' \
             'This release tracks the latest ${version} major release (${version}.x.y).' \
             '${version} Minor Release Track' \
             'This release tracks the latest ${version} minor release (${version}.x).' \
           > expected.txt
-          echo '${{steps.create-tags.outputs.executed-commands}}' > actual.txt
+          if [ '${{github.event_name}}' == 'push' ]; then
+            echo '${{steps.create-tags-master.outputs.executed-commands}}' > actual.txt
+          else
+            echo '${{steps.create-tags-local.outputs.executed-commands}}' > actual.txt
+          fi
           git diff --no-index -- expected.txt actual.txt
 
   test-customized:
@@ -164,13 +161,6 @@ jobs:
           github-token: ${{secrets.GITHUB_TOKEN}}
           dry-run: true
         id: create-tags-local
-      - id: create-tags
-        run: |
-          if [ '${{github.event_name}}' == 'push' ]; then
-            echo "::set-output name=executed-commands::${{steps.create-tags-master.outputs.executed-commands}}"
-          else
-            echo "::set-output name=executed-commands::${{steps.create-tags-local.outputs.executed-commands}}"
-          fi
       - name: Check executed commands
         run: |
           ./__test__/bin/generate_expected_commands.sh \
@@ -186,7 +176,11 @@ jobs:
             '${{env.INPUT_RELEASE_TITLE}}' \
             '${{env.INPUT_RELEASE_BODY}}' \
           > expected.txt
-          echo '${{steps.create-tags.outputs.executed-commands}}' > actual.txt
+          if [ '${{github.event_name}}' == 'push' ]; then
+            echo ':${{steps.create-tags-master.outputs.executed-commands}}' > actual.txt
+          else
+            echo '${{steps.create-tags-local.outputs.executed-commands}}' > actual.txt
+          fi
           git diff --no-index -- expected.txt actual.txt
 
   test-from-env:
@@ -262,13 +256,6 @@ jobs:
         env:
           TEST_GITHUB_REF: refs/tags/${{matrix.tag}}
         id: create-tags-local
-      - id: create-tags
-        run: |
-          if [ '${{github.event_name}}' == 'push' ]; then
-            echo "::set-output name=executed-commands::${{steps.create-tags-master.outputs.executed-commands}}"
-          else
-            echo "::set-output name=executed-commands::${{steps.create-tags-local.outputs.executed-commands}}"
-          fi
       - name: Check executed commands
         run: |
           ./__test__/bin/generate_expected_commands.sh \
@@ -284,7 +271,11 @@ jobs:
             '${{matrix.release-title}}' \
             '${{matrix.release-body}}' \
           > expected.txt
-          echo '${{steps.create-tags.outputs.executed-commands}}' > actual.txt
+          if [ '${{github.event_name}}' == 'push' ]; then
+            echo '${{steps.create-tags-master.outputs.executed-commands}}' > actual.txt
+          else
+            echo '${{steps.create-tags-local.outputs.executed-commands}}' > actual.txt
+          fi
           git diff --no-index -- expected.txt actual.txt
 
   test-invalid:
@@ -327,12 +318,11 @@ jobs:
           github-token: ${{secrets.GITHUB_TOKEN}}
           dry-run: true
         id: create-tags-local
-      - id: create-tags
+      - name: Check executed commands
         run: |
           if [ '${{github.event_name}}' == 'push' ]; then
-            echo "::set-output name=executed-commands::${{steps.create-tags-master.outputs.executed-commands}}"
+            EXECUTED="${{steps.create-tags-master.outputs.executed-commands}}"
           else
-            echo "::set-output name=executed-commands::${{steps.create-tags-local.outputs.executed-commands}}"
+            EXECUTED="${{steps.create-tags-local.outputs.executed-commands}}"
           fi
-      - name: Check executed commands
-        run: test '${{steps.create-tags.outputs.executed-commands}}' == ''
+          test '${{EXECUTED}}' == ''
