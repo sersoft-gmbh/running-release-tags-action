@@ -30,15 +30,12 @@ const core = __importStar(__nccwpck_require__(6024));
 const exec = __importStar(__nccwpck_require__(2423));
 const github = __importStar(__nccwpck_require__(5016));
 const request_error_1 = __nccwpck_require__(1042);
-async function runCmd(cmd, args, failOnStdErr = true) {
-    let stdOut = '';
-    await exec.exec(cmd, args, {
-        failOnStdErr: failOnStdErr,
-        listeners: {
-            stdout: (data) => stdOut += data.toString()
-        }
+async function runCmd(cmd, args) {
+    const output = await exec.getExecOutput(cmd, args, {
+        failOnStdErr: false,
+        silent: !core.isDebug()
     });
-    return stdOut;
+    return output.stdout;
 }
 function getReleaseParameters(releaseType, isDraft) {
     return {
@@ -157,7 +154,7 @@ async function main() {
     }
     async function runGit(cmd) {
         if (!dryRun) {
-            await runCmd('git', cmd, false);
+            await runCmd('git', cmd);
         }
         else {
             dryRunCmd(['git'].concat(cmd));
