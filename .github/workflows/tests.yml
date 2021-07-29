@@ -260,16 +260,16 @@ jobs:
         run: |
           ./__test__/bin/generate_expected_commands.sh \
             '${{matrix.tag}}' \
-            '${{matrix.update-major}}' \
-            '${{matrix.update-minor}}' \
-            '${{matrix.skip-repo-setup}}' \
-            '${{matrix.create-release}}' \
-            '${{matrix.create-release-as-draft}}' \
-            '${{matrix.update-full-release}}' \
-            '${{matrix.release-title}}' \
-            '${{matrix.release-body}}' \
-            '${{matrix.release-title}}' \
-            '${{matrix.release-body}}' \
+            '${{env.INPUT_UPDATE_MAJOR}}' \
+            '${{env.INPUT_UPDATE_MINOR}}' \
+            '${{env.INPUT_SKIP_REPO_SETUP}}' \
+            '${{env.INPUT_CREATE_RELEASE}}' \
+            '${{env.INPUT_CREATE_RELEASE_AS_DRAFT}}' \
+            '${{enf.update-full-release}}' \
+            '${{env.INPUT_RELEASE_TITLE}}' \
+            '${{env.INPUT_RELEASE_BODY}}' \
+            '${{env.INPUT_RELEASE_TITLE}}' \
+            '${{env.INPUT_RELEASE_BODY}}' \
           > expected.txt
           if [ '${{github.event_name}}' == 'push' ]; then
             echo '${{steps.create-tags-master.outputs.executed-commands}}' > actual.txt
