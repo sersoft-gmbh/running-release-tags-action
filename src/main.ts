@@ -19,15 +19,12 @@ interface IRelease {
     body?: string;
 }
 
-async function runCmd(cmd: string, args?: string[], failOnStdErr: boolean = true): Promise<string> {
-    let stdOut = '';
-    await exec.exec(cmd, args, {
-        failOnStdErr: failOnStdErr,
-        listeners: {
-            stdout: (data: Buffer) => stdOut += data.toString()
-        }
+async function runCmd(cmd: string, args?: string[]): Promise<string> {
+    const output = await exec.getExecOutput(cmd, args, {
+        failOnStdErr: false,
+        silent: !core.isDebug()
     });
-    return stdOut;
+    return output.stdout;
 }
 
 function getReleaseParameters(releaseType: string, isDraft: boolean): IReleaseParameters {
@@ -160,7 +157,7 @@ async function main() {
 
     async function runGit(cmd: string[]) {
         if (!dryRun) {
-            await runCmd('git', cmd, false);
+            await runCmd('git', cmd);
         } else {
             dryRunCmd(['git'].concat(cmd));
         }
@@ -291,7 +288,7 @@ async function main() {
 }
 
 try {
-    main().catch(error => core.setFailed(error.message))
+    main().catch(error => core.setFailed(error.message));
 } catch (error) {
     core.setFailed(error.message);
 }
