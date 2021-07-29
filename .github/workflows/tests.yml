@@ -177,7 +177,7 @@ jobs:
             '${{env.INPUT_RELEASE_BODY}}' \
           > expected.txt
           if [ '${{github.event_name}}' == 'push' ]; then
-            echo ':${{steps.create-tags-master.outputs.executed-commands}}' > actual.txt
+            echo '${{steps.create-tags-master.outputs.executed-commands}}' > actual.txt
           else
             echo '${{steps.create-tags-local.outputs.executed-commands}}' > actual.txt
           fi
