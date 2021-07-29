@@ -325,4 +325,4 @@ jobs:
           else
             EXECUTED="${{steps.create-tags-local.outputs.executed-commands}}"
           fi
-          test '${{EXECUTED}}' == ''
+          test '${EXECUTED}' == ''
