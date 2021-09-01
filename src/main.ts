@@ -289,6 +289,6 @@ async function main() {
 
 try {
     main().catch(error => core.setFailed(error.message));
-} catch (error) {
+} catch (error: any) {
     core.setFailed(error.message);
 }
