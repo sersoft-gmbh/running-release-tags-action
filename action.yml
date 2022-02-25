@@ -63,7 +63,7 @@ inputs:
     description: '<TEST ONLY> Whether the commands should only be printed but not actually run. Only used in test.'
     required: false
 runs:
-  using: node12
+  using: node16
   main: dist/index.js
 branding:
   color: gray-dark
