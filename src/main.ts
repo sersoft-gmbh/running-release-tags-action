@@ -164,7 +164,7 @@ async function main() {
     }
 
     core.startGroup('Validate version');
-    const versionRegEx = new RegExp(`^${prefixRegex}[0-9]+\\.[0-9]+\\.[0-9]+${suffixRegex}$`);
+    const versionRegEx = new RegExp(`^${prefixRegex}\d+\\.\d+\\.\d+${suffixRegex}$`);
     if (!versionRegEx.test(tag)) {
         const message = `Version tag ${tag} does not match (semver) regex ${versionRegEx.source}`;
         if (failOnNonSemVerTag) {
@@ -246,7 +246,7 @@ async function main() {
                 throw new Error(`Could not find an existing GitHub release for tag ${tag}`);
             }
 
-            // To mark the full release as latest, we simply update it by appending `&nbsp`.
+            // To mark the full release as latest, we simply update it by appending `&nbsp` and removing it again.
             const appendUpdate = {
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
