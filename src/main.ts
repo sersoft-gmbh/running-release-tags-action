@@ -164,9 +164,9 @@ async function main() {
     }
 
     core.startGroup('Validate version');
-    const versionRegEx = new RegExp(`^${prefixRegex}\d+\\.\d+\\.\d+${suffixRegex}$`);
+    const versionRegEx = new RegExp(`^${prefixRegex}[0-9]+\\.[0-9]+\\.[0-9]+${suffixRegex}$`);
     if (!versionRegEx.test(tag)) {
-        const message = `Version tag ${tag} does not match (semver) regex ${versionRegEx.source}`;
+        const message = `Version tag '${tag}' does not match (semver) regex '${versionRegEx.source}'`;
         if (failOnNonSemVerTag) {
             throw new Error(message);
         } else {
