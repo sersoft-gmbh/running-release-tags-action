@@ -26,7 +26,7 @@ Default: `''`
 ### `fail-on-non-semver-tag`
 
 Whether the action should fail on non-semver compatible tags. If `false`, it simply writes a log messages and exists gracefully.<br/>
-Default: false
+Default: `false`
 
 ### `update-major`
 
@@ -82,7 +82,8 @@ Default: `false`
 
 ### `github-token`
 
-The token with which to authenticate against GitHub. Only required if releases should be created. Can be set to `${{secrets.GITHUB_TOKEN}}`.
+The token with which to authenticate against GitHub. Only required if releases should be created. Can also be set to `${{secrets.GITHUB_TOKEN}}`.
+Default: `${{github.token}}`
 
 ## Example Usage
 
@@ -91,5 +92,4 @@ Use the following snippet to create a major and minor release for the tag `1.2.3
 uses: sersoft-gmbh/running-release-tags-action@v2
 with:
   tag: 1.2.3
-  github-token: ${{secrets.GITHUB_TOKEN}}
 ```
