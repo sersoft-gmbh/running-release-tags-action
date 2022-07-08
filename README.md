@@ -82,7 +82,7 @@ Default: `false`
 
 ### `github-token`
 
-The token with which to authenticate against GitHub. Only required if releases should be created. Can also be set to `${{secrets.GITHUB_TOKEN}}`.
+The token with which to authenticate against GitHub. Only required if releases should be created. Can also be set to `${{secrets.GITHUB_TOKEN}}`.<br/>
 Default: `${{github.token}}`
 
 ## Example Usage
