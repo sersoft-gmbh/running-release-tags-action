@@ -77,7 +77,7 @@ jobs:
           BRANCH_EXECUTED_COMMANDS: ${{ steps.create-tags-master.outputs.executed-commands }}
           LOCAL_EXECUTED_COMMANDS: ${{ steps.create-tags-local.outputs.executed-commands }}
         run: |
-          ./__test__/bin/generate_expected_commands.sh '${INPUT_TAG}' true true false true false false \
+          ./__test__/bin/generate_expected_commands.sh "${INPUT_TAG}" true true false true false false \
             '${version} Major Release Track' \
             'This release tracks the latest ${version} major release (${version}.x.y).' \
             '${version} Minor Release Track' \
