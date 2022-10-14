@@ -84,7 +84,7 @@ jobs:
             'This release tracks the latest ${version} minor release (${version}.x).' \
           > expected.txt
           if [ "${EVENT_NAME}" == 'push' ]; then
-            echo "${BRANCH_EXECUTED_COMMANDS}' > actual.txt
+            echo "${BRANCH_EXECUTED_COMMANDS}" > actual.txt
           else
             echo "${LOCAL_EXECUTED_COMMANDS}" > actual.txt
           fi
@@ -198,7 +198,7 @@ jobs:
             "${INPUT_RELEASE_BODY}" \
           > expected.txt
           if [ "${EVENT_NAME}" == 'push' ]; then
-            echo "${BRANCH_EXECUTED_COMMANDS}' > actual.txt
+            echo "${BRANCH_EXECUTED_COMMANDS}" > actual.txt
           else
             echo "${LOCAL_EXECUTED_COMMANDS}" > actual.txt
           fi
@@ -300,7 +300,7 @@ jobs:
             "${INPUT_RELEASE_BODY}" \
           > expected.txt
           if [ "${EVENT_NAME}" == 'push' ]; then
-            echo "${BRANCH_EXECUTED_COMMANDS}' > actual.txt
+            echo "${BRANCH_EXECUTED_COMMANDS}" > actual.txt
           else
             echo "${LOCAL_EXECUTED_COMMANDS}" > actual.txt
           fi
@@ -355,7 +355,7 @@ jobs:
           LOCAL_EXECUTED_COMMANDS: ${{ steps.create-tags-local.outputs.executed-commands }}
         run: |
           if [ "${EVENT_NAME}" == 'push' ]; then
-            EXECUTED="${BRANCH_EXECUTED_COMMANDS}'
+            EXECUTED="${BRANCH_EXECUTED_COMMANDS}"
           else
             EXECUTED="${LOCAL_EXECUTED_COMMANDS}"
           fi
