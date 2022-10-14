@@ -9,7 +9,7 @@ on:
 
 jobs:
   deploy-action-code:
-    if: github.event_name == 'push'
+    if: ${{ github.event_name == 'push' }}
     name: Deploy Action Code
     runs-on: ubuntu-latest
     steps:
@@ -17,13 +17,15 @@ jobs:
         run: sudo npm i -g typescript @vercel/ncc
       - uses: actions/checkout@v3.1.0
         with:
-          token: ${{secrets.BOT_TOKEN}}
+          token: ${{ secrets.BOT_TOKEN }}
       - name: Generate action code
         run: npm run deploy
       - name: Configure repository
+        env:
+          BOT_USERNAME: ${{ secrets.BOT_USERNAME }}
         run: |
-          git config user.name "${{secrets.BOT_USERNAME}}"
-          git config user.email "${{secrets.BOT_USERNAME}}@users.noreply.github.com"
+          git config user.name "${BOT_USERNAME}"
+          git config user.email "${BOT_USERNAME}@users.noreply.github.com"
       - name: Commit changes
         run: |
           if ! git diff --exit-code --quiet; then
@@ -34,57 +36,63 @@ jobs:
 
   test-defaults:
     needs: deploy-action-code
-    if: always() && !failure() && !cancelled()
+    if: ${{ always() && !failure() && !cancelled() }}
     name: Test Default Inputs
     env:
       INPUT_TAG: 1.2.3
     runs-on: ubuntu-latest
     steps:
-      - run: echo "RUNNER_DEBUG=1" >> $GITHUB_ENV
-        if: github.event_name == 'pull_request' && env.RUNNER_DEBUG != 1
-      - run: test "${{env.RUNNER_DEBUG}}" == "1"
-        if: github.event_name == 'pull_request'
-      - run: test '${{secrets.ACTIONS_STEP_DEBUG}}' == 'true'
-        if: github.event_name == 'push'
+      - if: ${{ github.event_name == 'pull_request' && env.RUNNER_DEBUG != 1 }}
+        run: echo 'RUNNER_DEBUG=1' >> "${GITHUB_ENV}"
+      - if: ${{ github.event_name == 'pull_request' }}
+        run: test "${RUNNER_DEBUG}" == "1"
+      - if: ${{ github.event_name == 'push' }}
+        env:
+          DEBUG_ENABLED: ${{ secrets.ACTIONS_STEP_DEBUG }}
+        run: test "${DEBUG_ENABLED}" == 'true'
       - name: Install dependencies
-        if: github.event_name == 'pull_request'
+        if: ${{ github.event_name == 'pull_request' }}
         run: sudo npm i -g typescript @vercel/ncc
       - uses: actions/checkout@v3.1.0
       - name: Generate action code
-        if: github.event_name == 'pull_request'
+        if: ${{ github.event_name == 'pull_request' }}
         run: npm run deploy
       - uses: sersoft-gmbh/running-release-tags-action@master
-        if: github.event_name == 'push'
+        if: ${{ github.event_name == 'push' }}
         with:
-          tag: ${{env.INPUT_TAG}}
-          github-token: ${{secrets.GITHUB_TOKEN}}
+          tag: ${{ env.INPUT_TAG }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           dry-run: true
         id: create-tags-master
       - uses: './'
-        if: github.event_name == 'pull_request'
+        if: ${{ github.event_name == 'pull_request' }}
         with:
-          tag: ${{env.INPUT_TAG}}
-          github-token: ${{secrets.GITHUB_TOKEN}}
+          tag: ${{ env.INPUT_TAG }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           dry-run: true
         id: create-tags-local
       - name: Check executed commands
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BRANCH_EXECUTED_COMMANDS: ${{ steps.create-tags-master.outputs.executed-commands }}
+          LOCAL_EXECUTED_COMMANDS: ${{ steps.create-tags-local.outputs.executed-commands }}
         run: |
-          ./__test__/bin/generate_expected_commands.sh '${{env.INPUT_TAG}}' true true false true false false \
+          ./__test__/bin/generate_expected_commands.sh '${INPUT_TAG}' true true false true false false \
             '${version} Major Release Track' \
             'This release tracks the latest ${version} major release (${version}.x.y).' \
             '${version} Minor Release Track' \
             'This release tracks the latest ${version} minor release (${version}.x).' \
           > expected.txt
-          if [ '${{github.event_name}}' == 'push' ]; then
-            echo '${{steps.create-tags-master.outputs.executed-commands}}' > actual.txt
+          if [ "${EVENT_NAME}" == 'push' ]; then
+            echo "${BRANCH_EXECUTED_COMMANDS}' > actual.txt
           else
-            echo '${{steps.create-tags-local.outputs.executed-commands}}' > actual.txt
+            echo "${LOCAL_EXECUTED_COMMANDS}" > actual.txt
           fi
           git diff --no-index -- expected.txt actual.txt
 
   test-customized:
     needs: deploy-action-code
-    if: always() && !failure() && !cancelled()
+    if: ${{ always() && !failure() && !cancelled() }}
     name: Test Customized Inputs
     strategy:
       matrix:
@@ -110,82 +118,95 @@ jobs:
       INPUT_SUFFIX_REGEX: 'd?'
     runs-on: ubuntu-latest
     steps:
-      - run: echo "RUNNER_DEBUG=1" >> $GITHUB_ENV
-        if: github.event_name == 'pull_request' && env.RUNNER_DEBUG != 1
-      - run: test "${{env.RUNNER_DEBUG}}" == "1"
-        if: github.event_name == 'pull_request'
-      - run: test '${{secrets.ACTIONS_STEP_DEBUG}}' == 'true'
-        if: github.event_name == 'push'
+      - if: ${{ github.event_name == 'pull_request' && env.RUNNER_DEBUG != 1 }}
+        run: echo 'RUNNER_DEBUG=1' >> "${GITHUB_ENV}"
+      - if: ${{ github.event_name == 'pull_request' }}
+        run: test "${RUNNER_DEBUG}" == "1"
+      - if: ${{ github.event_name == 'push' }}
+        env:
+          DEBUG_ENABLED: ${{ secrets.ACTIONS_STEP_DEBUG }}
+        run: test "${DEBUG_ENABLED}" == 'true'
       - name: Install dependencies
-        if: github.event_name == 'pull_request'
+        if: ${{ github.event_name == 'pull_request' }}
         run: sudo npm i -g typescript @vercel/ncc
       - uses: actions/checkout@v3.1.0
       - name: Generate action code
-        if: github.event_name == 'pull_request'
+        if: ${{ github.event_name == 'pull_request' }}
         run: npm run deploy
       - uses: sersoft-gmbh/running-release-tags-action@master
-        if: github.event_name == 'push'
+        if: ${{ github.event_name == 'push' }}
         with:
-          tag: ${{matrix.tag}}
-          update-major: ${{matrix.update-major}}
-          update-minor: ${{matrix.update-minor}}
-          prefix-regex: ${{env.INPUT_PREFIX_REGEX}}
-          suffix-regex: ${{env.INPUT_SUFFIX_REGEX}}
-          skip-repo-setup: ${{matrix.skip-repo-setup}}
-          create-release: ${{matrix.create-release}}
-          create-release-as-draft: ${{matrix.create-release-as-draft}}
-          major-release-title: ${{env.INPUT_RELEASE_TITLE}}
-          major-release-body: ${{env.INPUT_RELEASE_BODY}}
-          minor-release-title: ${{env.INPUT_RELEASE_TITLE}}
-          minor-release-body: ${{env.INPUT_RELEASE_BODY}}
-          update-full-release: ${{matrix.update-full-release}}
-          github-token: ${{secrets.GITHUB_TOKEN}}
+          tag: ${{ matrix.tag }}
+          update-major: ${{ matrix.update-major }}
+          update-minor: ${{ matrix.update-minor }}
+          prefix-regex: ${{ env.INPUT_PREFIX_REGEX }}
+          suffix-regex: ${{ env.INPUT_SUFFIX_REGEX }}
+          skip-repo-setup: ${{ matrix.skip-repo-setup }}
+          create-release: ${{ matrix.create-release }}
+          create-release-as-draft: ${{ matrix.create-release-as-draft }}
+          major-release-title: ${{ env.INPUT_RELEASE_TITLE }}
+          major-release-body: ${{ env.INPUT_RELEASE_BODY }}
+          minor-release-title: ${{ env.INPUT_RELEASE_TITLE }}
+          minor-release-body: ${{ env.INPUT_RELEASE_BODY }}
+          update-full-release: ${{ matrix.update-full-release }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           dry-run: true
         id: create-tags-master
       - uses: './'
-        if: github.event_name == 'pull_request'
+        if: ${{ github.event_name == 'pull_request' }}
         with:
-          tag: ${{matrix.tag}}
-          update-major: ${{matrix.update-major}}
-          update-minor: ${{matrix.update-minor}}
-          prefix-regex: ${{env.INPUT_PREFIX_REGEX}}
-          suffix-regex: ${{env.INPUT_SUFFIX_REGEX}}
-          skip-repo-setup: ${{matrix.skip-repo-setup}}
-          create-release: ${{matrix.create-release}}
-          create-release-as-draft: ${{matrix.create-release-as-draft}}
-          major-release-title:  ${{env.INPUT_RELEASE_TITLE}}
-          major-release-body: ${{env.INPUT_RELEASE_BODY}}
-          minor-release-title: ${{env.INPUT_RELEASE_TITLE}}
-          minor-release-body: ${{env.INPUT_RELEASE_BODY}}
-          update-full-release: ${{matrix.update-full-release}}
-          github-token: ${{secrets.GITHUB_TOKEN}}
+          tag: ${{ matrix.tag }}
+          update-major: ${{ matrix.update-major }}
+          update-minor: ${{ matrix.update-minor }}
+          prefix-regex: ${{ env.INPUT_PREFIX_REGEX }}
+          suffix-regex: ${{ env.INPUT_SUFFIX_REGEX }}
+          skip-repo-setup: ${{ matrix.skip-repo-setup }}
+          create-release: ${{ matrix.create-release }}
+          create-release-as-draft: ${{ matrix.create-release-as-draft }}
+          major-release-title:  ${{ env.INPUT_RELEASE_TITLE }}
+          major-release-body: ${{ env.INPUT_RELEASE_BODY }}
+          minor-release-title: ${{ env.INPUT_RELEASE_TITLE }}
+          minor-release-body: ${{ env.INPUT_RELEASE_BODY }}
+          update-full-release: ${{ matrix.update-full-release }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           dry-run: true
         id: create-tags-local
       - name: Check executed commands
+        env:
+          TAG: ${{ matrix.tag }}
+          UPDATE_MAJOR: ${{ matrix.update-major }}
+          UPDATE_MINOR: ${{ matrix.update-minor }}
+          SKIP_REPO_SETUP: ${{ matrix.skip-repo-setup }}
+          CREATE_RELEASE: ${{ matrix.create-release }}
+          CREATE_RELEASE_AS_DRAFT: ${{ matrix.create-release-as-draft }}
+          UPDATE_FULL_RELEASE: ${{ matrix.update-full-release }}
+          EVENT_NAME: ${{ github.event_name }}
+          BRANCH_EXECUTED_COMMANDS: ${{ steps.create-tags-master.outputs.executed-commands }}
+          LOCAL_EXECUTED_COMMANDS: ${{ steps.create-tags-local.outputs.executed-commands }}
         run: |
           ./__test__/bin/generate_expected_commands.sh \
-            '${{matrix.tag}}' \
-            '${{matrix.update-major}}' \
-            '${{matrix.update-minor}}' \
-            '${{matrix.skip-repo-setup}}' \
-            '${{matrix.create-release}}' \
-            '${{matrix.create-release-as-draft}}' \
-            '${{matrix.update-full-release}}' \
-            '${{env.INPUT_RELEASE_TITLE}}' \
-            '${{env.INPUT_RELEASE_BODY}}' \
-            '${{env.INPUT_RELEASE_TITLE}}' \
-            '${{env.INPUT_RELEASE_BODY}}' \
+            "${TAG}" \
+            "${UPDATE_MAJOR}" \
+            "${UPDATE_MINOR}" \
+            "${SKIP_REPO_SETUP}" \
+            "${CREATE_RELEASE}" \
+            "${CREATE_RELEASE_AS_DRAFT}" \
+            "${UPDATE_FULL_RELEASE}" \
+            "${INPUT_RELEASE_TITLE}" \
+            "${INPUT_RELEASE_BODY}" \
+            "${INPUT_RELEASE_TITLE}" \
+            "${INPUT_RELEASE_BODY}" \
           > expected.txt
-          if [ '${{github.event_name}}' == 'push' ]; then
-            echo '${{steps.create-tags-master.outputs.executed-commands}}' > actual.txt
+          if [ "${EVENT_NAME}" == 'push' ]; then
+            echo "${BRANCH_EXECUTED_COMMANDS}' > actual.txt
           else
-            echo '${{steps.create-tags-local.outputs.executed-commands}}' > actual.txt
+            echo "${LOCAL_EXECUTED_COMMANDS}" > actual.txt
           fi
           git diff --no-index -- expected.txt actual.txt
 
   test-from-env:
     needs: deploy-action-code
-    if: always() && !failure() && !cancelled()
+    if: ${{ always() && !failure() && !cancelled() }}
     name: Test With Environment
     strategy:
       matrix:
@@ -203,84 +224,91 @@ jobs:
       INPUT_UPDATE_FULL_RELEASE: false
     runs-on: ubuntu-latest
     steps:
-      - run: echo "RUNNER_DEBUG=1" >> $GITHUB_ENV
-        if: github.event_name == 'pull_request' && env.RUNNER_DEBUG != 1
-      - run: test "${{env.RUNNER_DEBUG}}" == "1"
-        if: github.event_name == 'pull_request'
-      - run: test '${{secrets.ACTIONS_STEP_DEBUG}}' == 'true'
-        if: github.event_name == 'push'
+      - if: ${{ github.event_name == 'pull_request' && env.RUNNER_DEBUG != 1 }}
+        run: echo 'RUNNER_DEBUG=1' >> "${GITHUB_ENV}"
+      - if: ${{ github.event_name == 'pull_request' }}
+        run: test "${RUNNER_DEBUG}" == "1"
+      - if: github.event_name == 'push'
+        env:
+          DEBUG_ENABLED: ${{ secrets.ACTIONS_STEP_DEBUG }}
+        run: test "${DEBUG_ENABLED}" == 'true'
       - name: Install dependencies
-        if: github.event_name == 'pull_request'
+        if: ${{ github.event_name == 'pull_request' }}
         run: sudo npm i -g typescript @vercel/ncc
       - uses: actions/checkout@v3.1.0
       - name: Generate action code
-        if: github.event_name == 'pull_request'
+        if: ${{ github.event_name == 'pull_request' }}
         run: npm run deploy
       - uses: sersoft-gmbh/running-release-tags-action@master
-        if: github.event_name == 'push'
+        if: ${{ github.event_name == 'push' }}
         with:
-          update-major: ${{env.INPUT_UPDATE_MAJOR}}
-          update-minor: ${{env.INPUT_UPDATE_MINOR}}
-          prefix-regex: ${{env.INPUT_PREFIX_REGEX}}
-          suffix-regex: ${{env.INPUT_SUFFIX_REGEX}}
-          skip-repo-setup: ${{env.INPUT_SKIP_REPO_SETUP}}
-          create-release: ${{env.INPUT_CREATE_RELEASE}}
-          create-release-as-draft: ${{env.INPUT_CREATE_RELEASE_AS_DRAFT}}
-          major-release-title: ${{env.INPUT_RELEASE_TITLE}}
-          major-release-body: ${{env.INPUT_RELEASE_BODY}}
-          minor-release-title: ${{env.INPUT_RELEASE_TITLE}}
-          minor-release-body: ${{env.INPUT_RELEASE_BODY}}
-          update-full-release: ${{env.INPUT_UPDATE_FULL_RELEASE}}
-          github-token: ${{secrets.GITHUB_TOKEN}}
+          update-major: ${{ env.INPUT_UPDATE_MAJOR }}
+          update-minor: ${{ env.INPUT_UPDATE_MINOR }}
+          prefix-regex: ${{ env.INPUT_PREFIX_REGEX }}
+          suffix-regex: ${{ env.INPUT_SUFFIX_REGEX }}
+          skip-repo-setup: ${{ env.INPUT_SKIP_REPO_SETUP }}
+          create-release: ${{ env.INPUT_CREATE_RELEASE }}
+          create-release-as-draft: ${{ env.INPUT_CREATE_RELEASE_AS_DRAFT }}
+          major-release-title: ${{ env.INPUT_RELEASE_TITLE }}
+          major-release-body: ${{ env.INPUT_RELEASE_BODY }}
+          minor-release-title: ${{ env.INPUT_RELEASE_TITLE }}
+          minor-release-body: ${{ env.INPUT_RELEASE_BODY }}
+          update-full-release: ${{ env.INPUT_UPDATE_FULL_RELEASE }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           dry-run: true
         env:
-          TEST_GITHUB_REF: refs/tags/${{matrix.tag}}
+          TEST_GITHUB_REF: refs/tags/${{ matrix.tag }}
         id: create-tags-master
       - uses: './'
-        if: github.event_name == 'pull_request'
+        if: ${{ github.event_name == 'pull_request' }}
         with:
-          update-major: ${{env.INPUT_UPDATE_MAJOR}}
-          update-minor: ${{env.INPUT_UPDATE_MINOR}}
-          prefix-regex: ${{env.INPUT_PREFIX_REGEX}}
-          suffix-regex: ${{env.INPUT_SUFFIX_REGEX}}
-          skip-repo-setup: ${{env.INPUT_SKIP_REPO_SETUP}}
-          create-release: ${{env.INPUT_CREATE_RELEASE}}
-          create-release-as-draft: ${{env.INPUT_CREATE_RELEASE_AS_DRAFT}}
-          major-release-title: ${{env.INPUT_RELEASE_TITLE}}
-          major-release-body: ${{env.INPUT_RELEASE_BODY}}
-          minor-release-title: ${{env.INPUT_RELEASE_TITLE}}
-          minor-release-body: ${{env.INPUT_RELEASE_BODY}}
-          update-full-release: ${{env.INPUT_UPDATE_FULL_RELEASE}}
-          github-token: ${{secrets.GITHUB_TOKEN}}
+          update-major: ${{ env.INPUT_UPDATE_MAJOR }}
+          update-minor: ${{ env.INPUT_UPDATE_MINOR }}
+          prefix-regex: ${{ env.INPUT_PREFIX_REGEX }}
+          suffix-regex: ${{ env.INPUT_SUFFIX_REGEX }}
+          skip-repo-setup: ${{ env.INPUT_SKIP_REPO_SETUP }}
+          create-release: ${{ env.INPUT_CREATE_RELEASE }}
+          create-release-as-draft: ${{ env.INPUT_CREATE_RELEASE_AS_DRAFT }}
+          major-release-title: ${{ env.INPUT_RELEASE_TITLE }}
+          major-release-body: ${{ env.INPUT_RELEASE_BODY }}
+          minor-release-title: ${{ env.INPUT_RELEASE_TITLE }}
+          minor-release-body: ${{ env.INPUT_RELEASE_BODY }}
+          update-full-release: ${{ env.INPUT_UPDATE_FULL_RELEASE }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           dry-run: true
         env:
-          TEST_GITHUB_REF: refs/tags/${{matrix.tag}}
+          TEST_GITHUB_REF: refs/tags/${{ matrix.tag }}
         id: create-tags-local
       - name: Check executed commands
+        env:
+          TAG: ${{ matrix.tag }}
+          EVENT_NAME: ${{ github.event_name }}
+          BRANCH_EXECUTED_COMMANDS: ${{ steps.create-tags-master.outputs.executed-commands }}
+          LOCAL_EXECUTED_COMMANDS: ${{ steps.create-tags-local.outputs.executed-commands }}
         run: |
           ./__test__/bin/generate_expected_commands.sh \
-            '${{matrix.tag}}' \
-            '${{env.INPUT_UPDATE_MAJOR}}' \
-            '${{env.INPUT_UPDATE_MINOR}}' \
-            '${{env.INPUT_SKIP_REPO_SETUP}}' \
-            '${{env.INPUT_CREATE_RELEASE}}' \
-            '${{env.INPUT_CREATE_RELEASE_AS_DRAFT}}' \
-            '${{env.update-full-release}}' \
-            '${{env.INPUT_RELEASE_TITLE}}' \
-            '${{env.INPUT_RELEASE_BODY}}' \
-            '${{env.INPUT_RELEASE_TITLE}}' \
-            '${{env.INPUT_RELEASE_BODY}}' \
+            "${TAG}" \
+            "${INPUT_UPDATE_MAJOR}" \
+            "${INPUT_UPDATE_MINOR}" \
+            "${INPUT_SKIP_REPO_SETUP}" \
+            "${INPUT_CREATE_RELEASE}" \
+            "${INPUT_CREATE_RELEASE_AS_DRAFT}" \
+            "${INPUT_UPDATE_FULL_RELEASE}" \
+            "${INPUT_RELEASE_TITLE}" \
+            "${INPUT_RELEASE_BODY}" \
+            "${INPUT_RELEASE_TITLE}" \
+            "${INPUT_RELEASE_BODY}" \
           > expected.txt
-          if [ '${{github.event_name}}' == 'push' ]; then
-            echo '${{steps.create-tags-master.outputs.executed-commands}}' > actual.txt
+          if [ "${EVENT_NAME}" == 'push' ]; then
+            echo "${BRANCH_EXECUTED_COMMANDS}' > actual.txt
           else
-            echo '${{steps.create-tags-local.outputs.executed-commands}}' > actual.txt
+            echo "${LOCAL_EXECUTED_COMMANDS}" > actual.txt
           fi
           git diff --no-index -- expected.txt actual.txt
 
   test-invalid:
     needs: deploy-action-code
-    if: always() && !failure() && !cancelled()
+    if: ${{ always() && !failure() && !cancelled() }}
     name: Test Invalid Inputs
     strategy:
       matrix:
@@ -289,40 +317,46 @@ jobs:
       INPUT_FAIL_ON_NON_SEMVER_TAG: false
     runs-on: ubuntu-latest
     steps:
-      - run: echo "RUNNER_DEBUG=1" >> $GITHUB_ENV
-        if: github.event_name == 'pull_request' && env.RUNNER_DEBUG != 1
-      - run: test "${{env.RUNNER_DEBUG}}" == "1"
-        if: github.event_name == 'pull_request'
-      - run: test '${{secrets.ACTIONS_STEP_DEBUG}}' == 'true'
-        if: github.event_name == 'push'
+      - if: ${{ github.event_name == 'pull_request' && env.RUNNER_DEBUG != 1 }}
+        run: echo 'RUNNER_DEBUG=1' >> "${GITHUB_ENV}"
+      - if: ${{ github.event_name == 'pull_request' }}
+        run: test "${RUNNER_DEBUG}" == "1"
+      - if: github.event_name == 'push'
+        env:
+          DEBUG_ENABLED: ${{ secrets.ACTIONS_STEP_DEBUG }}
+        run: test "${DEBUG_ENABLED}" == 'true'
       - name: Install dependencies
-        if: github.event_name == 'pull_request'
+        if: ${{ github.event_name == 'pull_request' }}
         run: sudo npm i -g typescript @vercel/ncc
       - uses: actions/checkout@v3.1.0
       - name: Generate action code
-        if: github.event_name == 'pull_request'
+        if: ${{ github.event_name == 'pull_request' }}
         run: npm run deploy
       - uses: sersoft-gmbh/running-release-tags-action@master
-        if: github.event_name == 'push'
+        if: ${{ github.event_name == 'push' }}
         with:
-          tag: ${{matrix.tag}}
-          fail-on-non-semver-tag: ${{env.INPUT_FAIL_ON_NON_SEMVER_TAG}}
-          github-token: ${{secrets.GITHUB_TOKEN}}
+          tag: ${{ matrix.tag }}
+          fail-on-non-semver-tag: ${{ env.INPUT_FAIL_ON_NON_SEMVER_TAG }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           dry-run: true
         id: create-tags-master
       - uses: './'
         if: github.event_name == 'pull_request'
         with:
-          tag: ${{matrix.tag}}
-          fail-on-non-semver-tag: ${{env.INPUT_FAIL_ON_NON_SEMVER_TAG}}
-          github-token: ${{secrets.GITHUB_TOKEN}}
+          tag: ${{ matrix.tag }}
+          fail-on-non-semver-tag: ${{ env.INPUT_FAIL_ON_NON_SEMVER_TAG }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           dry-run: true
         id: create-tags-local
       - name: Check executed commands
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BRANCH_EXECUTED_COMMANDS: ${{ steps.create-tags-master.outputs.executed-commands }}
+          LOCAL_EXECUTED_COMMANDS: ${{ steps.create-tags-local.outputs.executed-commands }}
         run: |
-          if [ '${{github.event_name}}' == 'push' ]; then
-            EXECUTED="${{steps.create-tags-master.outputs.executed-commands}}"
+          if [ "${EVENT_NAME}" == 'push' ]; then
+            EXECUTED="${BRANCH_EXECUTED_COMMANDS}'
           else
-            EXECUTED="${{steps.create-tags-local.outputs.executed-commands}}"
+            EXECUTED="${LOCAL_EXECUTED_COMMANDS}"
           fi
-          test "${EXECUTED}" == ''
+          test -z "${EXECUTED}"
