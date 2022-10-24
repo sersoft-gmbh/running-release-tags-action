@@ -3,40 +3,12 @@ name: Tests
 on:
   push:
     branches: [ master ]
-    paths-ignore: [ 'dist/*.js' ]
+    paths: [ 'dist/*.js' ]
   pull_request:
     branches: [ master ]
 
 jobs:
-  deploy-action-code:
-    if: ${{ github.event_name == 'push' }}
-    name: Deploy Action Code
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install dependencies
-        run: sudo npm i -g typescript @vercel/ncc
-      - uses: actions/checkout@v3.1.0
-        with:
-          token: ${{ secrets.BOT_TOKEN }}
-      - name: Generate action code
-        run: npm run deploy
-      - name: Configure repository
-        env:
-          BOT_USERNAME: ${{ secrets.BOT_USERNAME }}
-        run: |
-          git config user.name "${BOT_USERNAME}"
-          git config user.email "${BOT_USERNAME}@users.noreply.github.com"
-      - name: Commit changes
-        run: |
-          if ! git diff --exit-code --quiet; then
-            git add .
-            git commit -m "[AUTO] Update generated code"
-            git push
-          fi
-
   test-defaults:
-    needs: deploy-action-code
-    if: ${{ always() && !failure() && !cancelled() }}
     name: Test Default Inputs
     env:
       INPUT_TAG: 1.2.3
@@ -91,8 +63,6 @@ jobs:
           git diff --no-index -- expected.txt actual.txt
 
   test-customized:
-    needs: deploy-action-code
-    if: ${{ always() && !failure() && !cancelled() }}
     name: Test Customized Inputs
     strategy:
       matrix:
@@ -205,8 +175,6 @@ jobs:
           git diff --no-index -- expected.txt actual.txt
 
   test-from-env:
-    needs: deploy-action-code
-    if: ${{ always() && !failure() && !cancelled() }}
     name: Test With Environment
     strategy:
       matrix:
@@ -307,8 +275,6 @@ jobs:
           git diff --no-index -- expected.txt actual.txt
 
   test-invalid:
-    needs: deploy-action-code
-    if: ${{ always() && !failure() && !cancelled() }}
     name: Test Invalid Inputs
     strategy:
       matrix:
