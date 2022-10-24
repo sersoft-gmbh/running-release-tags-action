@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import * as exec from '@actions/exec';
 import * as github from '@actions/github';
-import { GitHub } from "@actions/github/lib/utils";
+import { GitHub } from '@actions/github/lib/utils';
 import { RequestError } from '@octokit/request-error';
 
 declare type GHOctoKit = InstanceType<typeof GitHub>;
@@ -20,10 +20,7 @@ interface IRelease {
 }
 
 async function runCmd(cmd: string, args?: string[]): Promise<string> {
-    const output = await exec.getExecOutput(cmd, args, {
-        failOnStdErr: false,
-        silent: !core.isDebug()
-    });
+    const output = await exec.getExecOutput(cmd, args, { silent: !core.isDebug() });
     return output.stdout;
 }
 
@@ -42,7 +39,7 @@ function parseTag(dryRun: boolean): (string | null) {
         core.debug(`${envVar} is not set!`);
         return null;
     }
-    const prefix = "refs/tags/";
+    const prefix = 'refs/tags/';
     if (!refVar.startsWith(prefix)) {
         core.debug(`${refVar} is not a valid tag ref!`);
         return null;
@@ -119,7 +116,7 @@ async function main() {
 
     const tag = core.getInput('tag') || parseTag(dryRun);
     if (!tag) {
-        throw new Error("Input `tag` was not set and `${{github.ref}}` is not a valid tag ref!");
+        throw new Error('Input `tag` was not set and `${{github.ref}}` is not a valid tag ref!');
     }
 
     const prefixRegex = core.getInput('prefix-regex') || '';
@@ -179,7 +176,7 @@ async function main() {
 
     core.startGroup('Compose tags');
     if (!updateMajor && !updateMinor) {
-        core.info("Neither `update-major` nor `update-minor` is set. Nothing to do...");
+        core.info('Neither `update-major` nor `update-minor` is set. Nothing to do...');
         core.endGroup();
         return;
     }
