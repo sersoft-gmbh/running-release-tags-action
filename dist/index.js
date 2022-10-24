@@ -35,10 +35,7 @@ const exec = __importStar(__nccwpck_require__(2423));
 const github = __importStar(__nccwpck_require__(5016));
 const request_error_1 = __nccwpck_require__(1042);
 async function runCmd(cmd, args) {
-    const output = await exec.getExecOutput(cmd, args, {
-        failOnStdErr: false,
-        silent: !core.isDebug()
-    });
+    const output = await exec.getExecOutput(cmd, args, { silent: !core.isDebug() });
     return output.stdout;
 }
 function getReleaseParameters(releaseType, isDraft) {
@@ -55,7 +52,7 @@ function parseTag(dryRun) {
         core.debug(`${envVar} is not set!`);
         return null;
     }
-    const prefix = "refs/tags/";
+    const prefix = 'refs/tags/';
     if (!refVar.startsWith(prefix)) {
         core.debug(`${refVar} is not a valid tag ref!`);
         return null;
@@ -126,7 +123,7 @@ async function main() {
     const dryRun = core.isDebug() && core.getInput('dry-run') == 'true';
     const tag = core.getInput('tag') || parseTag(dryRun);
     if (!tag) {
-        throw new Error("Input `tag` was not set and `${{github.ref}}` is not a valid tag ref!");
+        throw new Error('Input `tag` was not set and `${{github.ref}}` is not a valid tag ref!');
     }
     const prefixRegex = core.getInput('prefix-regex') || '';
     const suffixRegex = core.getInput('suffix-regex') || '';
@@ -180,7 +177,7 @@ async function main() {
     core.endGroup();
     core.startGroup('Compose tags');
     if (!updateMajor && !updateMinor) {
-        core.info("Neither `update-major` nor `update-minor` is set. Nothing to do...");
+        core.info('Neither `update-major` nor `update-minor` is set. Nothing to do...');
         core.endGroup();
         return;
     }
