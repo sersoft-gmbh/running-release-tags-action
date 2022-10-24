@@ -3,7 +3,9 @@ name: Tests
 on:
   push:
     branches: [ master ]
-    paths: [ 'dist/*.js' ]
+    paths: 
+      - 'dist/*.js'
+      - '.github/workflows/tests.yml'
   pull_request:
     branches: [ master ]
 
