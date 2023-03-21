@@ -30,6 +30,6 @@
     "@octokit/request-error": "^3.0.3"
   },
   "devDependencies": {
-    "@types/node": "^16.18.16"
+    "@types/node": "^16.18.18"
   }
 }
