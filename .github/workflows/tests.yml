@@ -24,13 +24,10 @@ jobs:
         env:
           DEBUG_ENABLED: ${{ secrets.ACTIONS_STEP_DEBUG }}
         run: test "${DEBUG_ENABLED}" == 'true'
-      - name: Install dependencies
-        if: ${{ github.event_name == 'pull_request' }}
-        run: sudo npm i -g typescript @vercel/ncc
-      - uses: actions/checkout@v3.5.0
+      - uses: actions/checkout@v3
       - name: Generate action code
         if: ${{ github.event_name == 'pull_request' }}
-        run: npm run deploy
+        uses: ./.github/actions/generate-action-code
       - uses: sersoft-gmbh/running-release-tags-action@master
         if: ${{ github.event_name == 'push' }}
         with:
@@ -98,13 +95,10 @@ jobs:
         env:
           DEBUG_ENABLED: ${{ secrets.ACTIONS_STEP_DEBUG }}
         run: test "${DEBUG_ENABLED}" == 'true'
-      - name: Install dependencies
-        if: ${{ github.event_name == 'pull_request' }}
-        run: sudo npm i -g typescript @vercel/ncc
-      - uses: actions/checkout@v3.5.0
+      - uses: actions/checkout@v3
       - name: Generate action code
         if: ${{ github.event_name == 'pull_request' }}
-        run: npm run deploy
+        uses: ./.github/actions/generate-action-code
       - uses: sersoft-gmbh/running-release-tags-action@master
         if: ${{ github.event_name == 'push' }}
         with:
@@ -202,13 +196,10 @@ jobs:
         env:
           DEBUG_ENABLED: ${{ secrets.ACTIONS_STEP_DEBUG }}
         run: test "${DEBUG_ENABLED}" == 'true'
-      - name: Install dependencies
-        if: ${{ github.event_name == 'pull_request' }}
-        run: sudo npm i -g typescript @vercel/ncc
-      - uses: actions/checkout@v3.5.0
+      - uses: actions/checkout@v3
       - name: Generate action code
         if: ${{ github.event_name == 'pull_request' }}
-        run: npm run deploy
+        uses: ./.github/actions/generate-action-code
       - uses: sersoft-gmbh/running-release-tags-action@master
         if: ${{ github.event_name == 'push' }}
         with:
@@ -293,13 +284,10 @@ jobs:
         env:
           DEBUG_ENABLED: ${{ secrets.ACTIONS_STEP_DEBUG }}
         run: test "${DEBUG_ENABLED}" == 'true'
-      - name: Install dependencies
-        if: ${{ github.event_name == 'pull_request' }}
-        run: sudo npm i -g typescript @vercel/ncc
-      - uses: actions/checkout@v3.5.0
+      - uses: actions/checkout@v3
       - name: Generate action code
         if: ${{ github.event_name == 'pull_request' }}
-        run: npm run deploy
+        uses: ./.github/actions/generate-action-code
       - uses: sersoft-gmbh/running-release-tags-action@master
         if: ${{ github.event_name == 'push' }}
         with:
