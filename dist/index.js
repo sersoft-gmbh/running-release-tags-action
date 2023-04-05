@@ -58,8 +58,8 @@ function parseTag(dryRun) {
     }
     return refVar.substring(prefix.length);
 }
-async function _getReleaseByTag(octokit, tag) {
-    return await octokit.rest.repos.getReleaseByTag({
+function _getReleaseByTag(octokit, tag) {
+    return octokit.rest.repos.getReleaseByTag({
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
         tag: tag
