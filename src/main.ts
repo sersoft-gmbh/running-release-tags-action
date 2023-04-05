@@ -2,7 +2,6 @@ import * as core from '@actions/core';
 import * as exec from '@actions/exec';
 import * as github from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
-import { RequestError } from '@octokit/request-error';
 
 declare type GHOctoKit = InstanceType<typeof GitHub>;
 
@@ -47,8 +46,8 @@ function parseTag(dryRun: boolean): (string | null) {
     return refVar.substring(prefix.length);
 }
 
-async function _getReleaseByTag(octokit: GHOctoKit, tag: string): Promise<(IRelease | null)> {
-    return await octokit.rest.repos.getReleaseByTag({
+function _getReleaseByTag(octokit: GHOctoKit, tag: string): Promise<(IRelease | null)> {
+    return octokit.rest.repos.getReleaseByTag({
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
         tag: tag
