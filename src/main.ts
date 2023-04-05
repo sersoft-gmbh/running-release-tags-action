@@ -55,9 +55,10 @@ async function _getReleaseByTag(octokit: GHOctoKit, tag: string): Promise<(IRele
     })
         .then(r => r.status == 200 ? r.data as IRelease : null)
         .catch(e => {
-            if (e instanceof RequestError && e.status == 404) {
+            if (e.hasOwnProperty('status') && e.status == 404) {
                 return Promise.resolve(null);
             }
+            core.debug(`Error getting release by tag: ${e}`);
             return Promise.reject(e);
         });
 }
