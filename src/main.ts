@@ -5,6 +5,8 @@ import { GitHub } from '@actions/github/lib/utils';
 
 declare type GHOctoKit = InstanceType<typeof GitHub>;
 
+declare type MakeLatestRelease = 'false' | 'true' | 'legacy';
+
 interface IGHOctoKitResponse<T> {
     status: number;
     data: T;
@@ -108,7 +110,7 @@ async function createReleaseIfNeeded(octokit: GHOctoKit,
         name: releaseText(release.title, tag),
         body: releaseText(release.body, tag),
         draft: release.isDraft,
-        make_latest: false,
+        make_latest: 'false' as MakeLatestRelease,
     }
     if (!dryRun) {
         core.debug(`Creating release for ${tag}...`);
@@ -272,14 +274,14 @@ async function main() {
                 repo: github.context.repo.repo,
                 release_id: release.id,
                 body: (release.body ?? '') + '&nbsp;',
-                make_latest: true,
+                make_latest: 'true' as MakeLatestRelease,
             };
             const restoreUpdate = {
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
                 release_id: release.id,
                 body: release.body,
-                make_latest: true,
+                make_latest: 'true' as MakeLatestRelease,
             };
             if (!dryRun) {
                 await octokit.rest.repos.updateRelease(appendUpdate);
@@ -290,7 +292,7 @@ async function main() {
                     repo: string;
                     release_id: number;
                     body?: string;
-                    make_latest: boolean;
+                    make_latest: MakeLatestRelease;
                 }
                 async function dryRunUpdate(update: IReleaseUpdate): Promise<void> {
                     await dryRunGitHub('update-release', update.release_id.toString(), update.body || '');

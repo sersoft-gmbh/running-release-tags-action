@@ -109,7 +109,7 @@ async function createReleaseIfNeeded(octokit, flag, release, tag, dryRun, dryRun
         name: releaseText(release.title, tag),
         body: releaseText(release.body, tag),
         draft: release.isDraft,
-        make_latest: false,
+        make_latest: 'false',
     };
     if (!dryRun) {
         core.debug(`Creating release for ${tag}...`);
@@ -252,14 +252,14 @@ async function main() {
                 repo: github.context.repo.repo,
                 release_id: release.id,
                 body: (release.body ?? '') + '&nbsp;',
-                make_latest: true,
+                make_latest: 'true',
             };
             const restoreUpdate = {
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
                 release_id: release.id,
                 body: release.body,
-                make_latest: true,
+                make_latest: 'true',
             };
             if (!dryRun) {
                 await octokit.rest.repos.updateRelease(appendUpdate);
