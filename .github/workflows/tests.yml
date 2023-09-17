@@ -2,12 +2,12 @@ name: Tests
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
     paths: 
       - 'dist/*.js'
       - '.github/workflows/tests.yml'
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   test-defaults:
@@ -28,13 +28,13 @@ jobs:
       - name: Generate action code
         if: ${{ github.event_name == 'pull_request' }}
         uses: ./.github/actions/generate-action-code
-      - uses: sersoft-gmbh/running-release-tags-action@master
+      - uses: sersoft-gmbh/running-release-tags-action@main
         if: ${{ github.event_name == 'push' }}
         with:
           tag: ${{ env.INPUT_TAG }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           dry-run: true
-        id: create-tags-master
+        id: create-tags-main
       - uses: './'
         if: ${{ github.event_name == 'pull_request' }}
         with:
@@ -45,7 +45,7 @@ jobs:
       - name: Check executed commands
         env:
           EVENT_NAME: ${{ github.event_name }}
-          BRANCH_EXECUTED_COMMANDS: ${{ steps.create-tags-master.outputs.executed-commands }}
+          BRANCH_EXECUTED_COMMANDS: ${{ steps.create-tags-main.outputs.executed-commands }}
           LOCAL_EXECUTED_COMMANDS: ${{ steps.create-tags-local.outputs.executed-commands }}
         run: |
           ./__test__/bin/generate_expected_commands.sh "${INPUT_TAG}" true true false true false false \
@@ -99,7 +99,7 @@ jobs:
       - name: Generate action code
         if: ${{ github.event_name == 'pull_request' }}
         uses: ./.github/actions/generate-action-code
-      - uses: sersoft-gmbh/running-release-tags-action@master
+      - uses: sersoft-gmbh/running-release-tags-action@main
         if: ${{ github.event_name == 'push' }}
         with:
           tag: ${{ matrix.tag }}
@@ -117,7 +117,7 @@ jobs:
           update-full-release: ${{ matrix.update-full-release }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           dry-run: true
-        id: create-tags-master
+        id: create-tags-main
       - uses: './'
         if: ${{ github.event_name == 'pull_request' }}
         with:
@@ -147,7 +147,7 @@ jobs:
           CREATE_RELEASE_AS_DRAFT: ${{ matrix.create-release-as-draft }}
           UPDATE_FULL_RELEASE: ${{ matrix.update-full-release }}
           EVENT_NAME: ${{ github.event_name }}
-          BRANCH_EXECUTED_COMMANDS: ${{ steps.create-tags-master.outputs.executed-commands }}
+          BRANCH_EXECUTED_COMMANDS: ${{ steps.create-tags-main.outputs.executed-commands }}
           LOCAL_EXECUTED_COMMANDS: ${{ steps.create-tags-local.outputs.executed-commands }}
         run: |
           ./__test__/bin/generate_expected_commands.sh \
@@ -200,7 +200,7 @@ jobs:
       - name: Generate action code
         if: ${{ github.event_name == 'pull_request' }}
         uses: ./.github/actions/generate-action-code
-      - uses: sersoft-gmbh/running-release-tags-action@master
+      - uses: sersoft-gmbh/running-release-tags-action@main
         if: ${{ github.event_name == 'push' }}
         with:
           update-major: ${{ env.INPUT_UPDATE_MAJOR }}
@@ -219,7 +219,7 @@ jobs:
           dry-run: true
         env:
           TEST_GITHUB_REF: refs/tags/${{ matrix.tag }}
-        id: create-tags-master
+        id: create-tags-main
       - uses: './'
         if: ${{ github.event_name == 'pull_request' }}
         with:
@@ -244,7 +244,7 @@ jobs:
         env:
           TAG: ${{ matrix.tag }}
           EVENT_NAME: ${{ github.event_name }}
-          BRANCH_EXECUTED_COMMANDS: ${{ steps.create-tags-master.outputs.executed-commands }}
+          BRANCH_EXECUTED_COMMANDS: ${{ steps.create-tags-main.outputs.executed-commands }}
           LOCAL_EXECUTED_COMMANDS: ${{ steps.create-tags-local.outputs.executed-commands }}
         run: |
           ./__test__/bin/generate_expected_commands.sh \
@@ -288,14 +288,14 @@ jobs:
       - name: Generate action code
         if: ${{ github.event_name == 'pull_request' }}
         uses: ./.github/actions/generate-action-code
-      - uses: sersoft-gmbh/running-release-tags-action@master
+      - uses: sersoft-gmbh/running-release-tags-action@main
         if: ${{ github.event_name == 'push' }}
         with:
           tag: ${{ matrix.tag }}
           fail-on-non-semver-tag: ${{ env.INPUT_FAIL_ON_NON_SEMVER_TAG }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           dry-run: true
-        id: create-tags-master
+        id: create-tags-main
       - uses: './'
         if: github.event_name == 'pull_request'
         with:
@@ -307,7 +307,7 @@ jobs:
       - name: Check executed commands
         env:
           EVENT_NAME: ${{ github.event_name }}
-          BRANCH_EXECUTED_COMMANDS: ${{ steps.create-tags-master.outputs.executed-commands }}
+          BRANCH_EXECUTED_COMMANDS: ${{ steps.create-tags-main.outputs.executed-commands }}
           LOCAL_EXECUTED_COMMANDS: ${{ steps.create-tags-local.outputs.executed-commands }}
         run: |
           if [ "${EVENT_NAME}" == 'push' ]; then

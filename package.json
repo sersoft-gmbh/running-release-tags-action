@@ -1,12 +1,17 @@
 {
   "name": "running-release-tags-action",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "A GitHub action that automatically updates \"running release\" major and major.minor tags.",
-  "main": "dist/index.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "pack": "rm -rf dist && ncc build lib/main.js -o dist"
+    "pack": "rm -rf dist && ncc build lib/main.js -o dist --license license.txt --target es2022"
   },
   "repository": {
     "type": "git",
@@ -29,7 +34,8 @@
     "@actions/io": "^1.1.3"
   },
   "devDependencies": {
-    "@types/node": "^16.18.50",
+    "@tsconfig/node20": "^20.1.2",
+    "@types/node": "^20.6.2",
     "@vercel/ncc": "^0.38.0",
     "typescript": "^5.2.2"
   }

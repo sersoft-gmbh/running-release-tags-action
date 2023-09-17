@@ -31,17 +31,17 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
-const exec = __importStar(__nccwpck_require__(1514));
+const exec_1 = __nccwpck_require__(1514);
 const github = __importStar(__nccwpck_require__(5438));
-async function runCmd(cmd, args) {
-    const output = await exec.getExecOutput(cmd, args, { silent: !core.isDebug() });
+async function runCmd(cmd, ...args) {
+    const output = await (0, exec_1.getExecOutput)(cmd, args.length <= 0 ? undefined : args);
     return output.stdout;
 }
 function getReleaseParameters(releaseType, isDraft) {
     return {
         title: core.getInput(`${releaseType}-release-title`, { required: true }),
         body: core.getInput(`${releaseType}-release-body`, { required: true }),
-        isDraft: isDraft
+        isDraft: isDraft,
     };
 }
 function parseTag(dryRun) {
@@ -58,36 +58,46 @@ function parseTag(dryRun) {
     }
     return refVar.substring(prefix.length);
 }
-function _getReleaseByTag(octokit, tag) {
-    return octokit.rest.repos.getReleaseByTag({
+async function _responseOrNull(promise) {
+    try {
+        let response = await promise;
+        return response.status === 200 ? response.data : null;
+    }
+    catch (e) {
+        if (e.hasOwnProperty('status') && e.status == 404)
+            return null;
+        core.debug(`Error getting release by tag: ${e}`);
+        throw e;
+    }
+}
+async function getReleaseByTag(octokit, tag) {
+    return await _responseOrNull(octokit.rest.repos.getReleaseByTag({
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
-        tag: tag
-    })
-        .then(r => r.status == 200 ? r.data : null)
-        .catch(e => {
-        if (e.hasOwnProperty('status') && e.status == 404) {
-            return Promise.resolve(null);
-        }
-        core.debug(`Error getting release by tag: ${e}`);
-        return Promise.reject(e);
-    });
+        tag: tag,
+    }));
+}
+async function getLatestRelease(octokit) {
+    return await _responseOrNull(octokit.rest.repos.getLatestRelease({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+    }));
 }
 async function createReleaseIfNeeded(octokit, flag, release, tag, dryRun, dryRunGitHubCmd) {
     if (!flag || !release)
-        return;
+        return false;
     let needsRelease;
     if (!dryRun) {
-        const release = await _getReleaseByTag(octokit, tag);
+        const release = await getReleaseByTag(octokit, tag);
         needsRelease = release == null;
         core.debug(`Check if ${tag} needs a release says -> ${needsRelease}`);
     }
     else {
-        dryRunGitHubCmd(['get-release-by-tag', tag]);
+        await dryRunGitHubCmd('get-release-by-tag', tag);
         needsRelease = true;
     }
     if (!needsRelease)
-        return;
+        return false;
     function releaseText(template, tag) {
         return template.split('${version}').join(tag);
     }
@@ -98,7 +108,8 @@ async function createReleaseIfNeeded(octokit, flag, release, tag, dryRun, dryRun
         tag_name: tag,
         name: releaseText(release.title, tag),
         body: releaseText(release.body, tag),
-        draft: release.isDraft
+        draft: release.isDraft,
+        make_latest: false,
     };
     if (!dryRun) {
         core.debug(`Creating release for ${tag}...`);
@@ -106,14 +117,9 @@ async function createReleaseIfNeeded(octokit, flag, release, tag, dryRun, dryRun
         core.debug(`Created release (status ${response.status}) with id ${response.data.id}.`);
     }
     else {
-        dryRunGitHubCmd([
-            'create-release',
-            requestParams.tag_name,
-            requestParams.name || '',
-            requestParams.body || '',
-            `${requestParams.draft || false}`
-        ]);
+        await dryRunGitHubCmd('create-release', requestParams.tag_name, requestParams.name || '', requestParams.body || '', `${requestParams.draft || false}`);
     }
+    return true;
 }
 async function main() {
     core.startGroup('Validating input');
@@ -122,9 +128,8 @@ async function main() {
     // We cannot use `getBooleanInput` here, since it fails if not set.
     const dryRun = core.isDebug() && core.getInput('dry-run') == 'true';
     const tag = core.getInput('tag') || parseTag(dryRun);
-    if (!tag) {
+    if (!tag)
         throw new Error('Input `tag` was not set and `${{github.ref}}` is not a valid tag ref!');
-    }
     const prefixRegex = core.getInput('prefix-regex') || '';
     const suffixRegex = core.getInput('suffix-regex') || '';
     const failOnNonSemVerTag = core.getBooleanInput('fail-on-non-semver-tag', { required: true });
@@ -145,34 +150,26 @@ async function main() {
     const updateFullRelease = core.getBooleanInput('update-full-release', { required: true });
     const githubToken = core.getInput('github-token', { required: createRelease && (updateMajor || updateMinor) });
     core.endGroup();
-    function dryRunCmd(cmd) {
-        const command = cmd.join(' ');
+    async function dryRunCmd(cmd, ...args) {
+        const command = [cmd].concat(args).join(' ');
         core.debug(`Would execute: \`${command}\``);
         executedCommands.push(command);
     }
-    async function dryRunGitHub(cmd) {
-        dryRunCmd(['github'].concat(cmd));
+    async function dryRunGitHub(...args) {
+        await dryRunCmd('github', ...args);
     }
-    async function runGit(cmd) {
-        if (!dryRun) {
-            await runCmd('git', cmd);
-        }
-        else {
-            dryRunCmd(['git'].concat(cmd));
-        }
+    async function runGit(...args) {
+        await (dryRun ? dryRunCmd : runCmd)('git', ...args);
     }
     core.startGroup('Validate version');
     const versionRegEx = new RegExp(`^${prefixRegex}[0-9]+\\.[0-9]+\\.[0-9]+${suffixRegex}$`);
     if (!versionRegEx.test(tag)) {
         const message = `Version tag '${tag}' does not match (semver) regex '${versionRegEx.source}'`;
-        if (failOnNonSemVerTag) {
+        if (failOnNonSemVerTag)
             throw new Error(message);
-        }
-        else {
-            core.info(message);
-            core.endGroup();
-            return;
-        }
+        core.info(message);
+        core.endGroup();
+        return;
     }
     core.endGroup();
     core.startGroup('Compose tags');
@@ -185,22 +182,20 @@ async function main() {
     const majorTag = versionComponents[0];
     const minorTag = `${majorTag}.${versionComponents[1]}`;
     let tagsToUpdate = [];
-    if (updateMajor) {
+    if (updateMajor)
         tagsToUpdate.push(majorTag);
-    }
-    if (updateMinor) {
+    if (updateMinor)
         tagsToUpdate.push(minorTag);
-    }
     core.endGroup();
     if (!skipRepoSetup) {
         const userName = process.env.GITHUB_ACTOR || 'nobody';
         await core.group('Setting up repo', async () => await Promise.all([
-            runGit(['config', 'user.name', userName]),
-            runGit(['config', 'user.email', `${userName}@users.noreply.github.com`]),
+            runGit('config', 'user.name', userName),
+            runGit('config', 'user.email', `${userName}@users.noreply.github.com`),
         ]));
     }
-    await core.group('Create tags', async () => await Promise.all(tagsToUpdate.map(t => runGit(['tag', '--force', t]))));
-    await core.group('Push tags', async () => await Promise.all(tagsToUpdate.map(t => runGit(['push', '--force', 'origin', t]))));
+    await core.group('Create tags', async () => await Promise.all(tagsToUpdate.map(t => runGit('tag', '--force', t))));
+    await core.group('Push tags', async () => await Promise.all(tagsToUpdate.map(t => runGit('push', '--force', 'origin', t))));
     if (createRelease) {
         await core.group('Create releases', async () => {
             const octokit = github.getOctokit(githubToken);
@@ -219,11 +214,13 @@ async function main() {
     }
     if (updateFullRelease) {
         await core.group('Update full release', async () => {
-            var _a;
             const octokit = github.getOctokit(githubToken);
-            let release;
+            let release, latestRelease;
             if (!dryRun) {
-                release = await _getReleaseByTag(octokit, tag);
+                [release, latestRelease] = await Promise.all([
+                    getReleaseByTag(octokit, tag),
+                    getLatestRelease(octokit),
+                ]);
             }
             else {
                 release = {
@@ -232,23 +229,37 @@ async function main() {
                     name: 'Dry Run Testing',
                     body: 'Dry Run Testing Body',
                 };
-                await dryRunGitHub(['get-release-by-tag', tag]);
+                latestRelease = {
+                    id: 4321,
+                    tag_name: 'v1.2.3',
+                    name: 'Dry Run Testing',
+                    body: 'Dry Run Testing Body',
+                };
+                await dryRunGitHub('get-release-by-tag', tag);
+                await dryRunGitHub('get-latest-release');
             }
-            if (!release) {
+            if (!release)
                 throw new Error(`Could not find an existing GitHub release for tag ${tag}`);
+            if (!latestRelease)
+                throw new Error(`Could not find a latest GitHub release`);
+            if (release.id === latestRelease.id) {
+                core.info(`Release ${release.id} is already the latest release. Nothing to do...`);
+                return;
             }
             // To mark the full release as latest, we simply update it by appending `&nbsp` and removing it again.
             const appendUpdate = {
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
                 release_id: release.id,
-                body: ((_a = release.body) !== null && _a !== void 0 ? _a : '') + '&nbsp;'
+                body: (release.body ?? '') + '&nbsp;',
+                make_latest: true,
             };
             const restoreUpdate = {
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
                 release_id: release.id,
-                body: release.body
+                body: release.body,
+                make_latest: true,
             };
             if (!dryRun) {
                 await octokit.rest.repos.updateRelease(appendUpdate);
@@ -256,20 +267,15 @@ async function main() {
             }
             else {
                 async function dryRunUpdate(update) {
-                    await dryRunGitHub([
-                        'update-release',
-                        update.release_id.toString(),
-                        update.body || '',
-                    ]);
+                    await dryRunGitHub('update-release', update.release_id.toString(), update.body || '');
                 }
                 await dryRunUpdate(appendUpdate);
                 await dryRunUpdate(restoreUpdate);
             }
         });
     }
-    if (dryRun) {
+    if (dryRun)
         core.setOutput('executed-commands', executedCommands.join('\n'));
-    }
 }
 try {
     main().catch(error => core.setFailed(error.message));

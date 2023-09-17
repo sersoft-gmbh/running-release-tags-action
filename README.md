@@ -89,7 +89,7 @@ Default: `${{github.token}}`
 
 Use the following snippet to create a major and minor release for the tag `1.2.3`:
 ```yaml
-uses: sersoft-gmbh/running-release-tags-action@v2
+uses: sersoft-gmbh/running-release-tags-action@v3
 with:
   tag: 1.2.3
 ```
