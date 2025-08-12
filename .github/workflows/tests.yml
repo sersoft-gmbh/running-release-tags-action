@@ -24,7 +24,7 @@ jobs:
         env:
           DEBUG_ENABLED: ${{ secrets.ACTIONS_STEP_DEBUG }}
         run: test "${DEBUG_ENABLED}" == 'true'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Generate action code
         if: ${{ github.event_name == 'pull_request' }}
         uses: ./.github/actions/generate-action-code
@@ -95,7 +95,7 @@ jobs:
         env:
           DEBUG_ENABLED: ${{ secrets.ACTIONS_STEP_DEBUG }}
         run: test "${DEBUG_ENABLED}" == 'true'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Generate action code
         if: ${{ github.event_name == 'pull_request' }}
         uses: ./.github/actions/generate-action-code
@@ -196,7 +196,7 @@ jobs:
         env:
           DEBUG_ENABLED: ${{ secrets.ACTIONS_STEP_DEBUG }}
         run: test "${DEBUG_ENABLED}" == 'true'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Generate action code
         if: ${{ github.event_name == 'pull_request' }}
         uses: ./.github/actions/generate-action-code
@@ -284,7 +284,7 @@ jobs:
         env:
           DEBUG_ENABLED: ${{ secrets.ACTIONS_STEP_DEBUG }}
         run: test "${DEBUG_ENABLED}" == 'true'
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Generate action code
         if: ${{ github.event_name == 'pull_request' }}
         uses: ./.github/actions/generate-action-code
