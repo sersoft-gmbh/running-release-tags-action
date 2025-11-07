@@ -4,6 +4,9 @@ on:
   release:
     types: [ published ]
 
+permissions:
+  contents: write
+
 jobs:
   update-tags:
     name: Update Running Releases
@@ -13,5 +16,4 @@ jobs:
       - uses: actions/checkout@v5
       - uses: './'
         with:
-          update-full-release: true
           github-token: ${{ secrets.GITHUB_TOKEN }}

@@ -1,36 +1,35 @@
 import * as core from '@actions/core';
-import { getExecOutput } from '@actions/exec';
+import { exec } from '@actions/exec';
 import * as github from '@actions/github';
 import { GitHub } from '@actions/github/lib/utils';
 
-declare type GHOctoKit = InstanceType<typeof GitHub>;
-
-declare type MakeLatestRelease = 'false' | 'true' | 'legacy';
+type GHOctoKit = InstanceType<typeof GitHub>;
+type MakeLatestRelease = 'false' | 'true' | 'legacy';
+type ReleaseType = 'major' | 'minor';
 
 interface IGHOctoKitResponse<T> {
-    status: number;
-    data: T;
+    readonly status: number;
+    readonly data: T;
 }
 
 interface IReleaseParameters {
-    title: string;
-    body: string;
-    isDraft: boolean;
+    readonly title: string;
+    readonly body: string;
+    readonly isDraft: boolean;
 }
 
 interface IRelease {
-    id: number;
-    tag_name: string;
-    name?: string;
-    body?: string;
+    readonly id: number;
+    readonly tag_name: string;
+    readonly name?: string;
+    readonly body?: string;
 }
 
-async function runCmd(cmd: string, ...args: string[]): Promise<string> {
-    const output = await getExecOutput(cmd, args.length <= 0 ? undefined : args);
-    return output.stdout;
+async function runCmd(cmd: string, ...args: string[]): Promise<void> {
+    await exec(cmd, args.length <= 0 ? undefined : args, {silent: !core.isDebug()});
 }
 
-function getReleaseParameters(releaseType: string, isDraft: boolean): IReleaseParameters {
+function getReleaseParameters(releaseType: ReleaseType, isDraft: boolean): IReleaseParameters {
     return {
         title: core.getInput(`${releaseType}-release-title`, { required: true }),
         body: core.getInput(`${releaseType}-release-body`, { required: true }),
@@ -58,7 +57,7 @@ async function _responseOrNull<T>(promise: Promise<IGHOctoKitResponse<any>>): Pr
         let response = await promise;
         return response.status === 200 ? response.data as T : null;
     } catch (e: any) {
-        if (e.hasOwnProperty('status') && e.status == 404)
+        if (Object.hasOwn(e, 'status') && e.status == 404)
             return null;
         core.debug(`Error getting release by tag: ${e}`);
         throw e;
@@ -120,9 +119,9 @@ async function createReleaseIfNeeded(octokit: GHOctoKit,
         await dryRunGitHubCmd(
             'create-release',
             requestParams.tag_name,
-            requestParams.name || '',
-            requestParams.body || '',
-            `${requestParams.draft || false}`,
+            requestParams.name ?? '',
+            requestParams.body ?? '',
+            `${requestParams.draft ?? false}`,
         );
     }
     return true;
@@ -135,12 +134,12 @@ async function main() {
     // We cannot use `getBooleanInput` here, since it fails if not set.
     const dryRun = core.isDebug() && core.getInput('dry-run') == 'true';
 
-    const tag = core.getInput('tag') || parseTag(dryRun);
+    const tag = core.getInput('tag') ?? parseTag(dryRun);
     if (!tag)
         throw new Error('Input `tag` was not set and `${{github.ref}}` is not a valid tag ref!');
 
-    const prefixRegex = core.getInput('prefix-regex') || '';
-    const suffixRegex = core.getInput('suffix-regex') || '';
+    const prefixRegex = core.getInput('prefix-regex') ?? '';
+    const suffixRegex = core.getInput('suffix-regex') ?? '';
     const failOnNonSemVerTag = core.getBooleanInput('fail-on-non-semver-tag', { required: true });
     const updateMajor = core.getBooleanInput('update-major', { required: true });
     const updateMinor = core.getBooleanInput('update-minor', { required: true });
@@ -162,17 +161,17 @@ async function main() {
     const githubToken = core.getInput('github-token', { required: createRelease && (updateMajor || updateMinor) });
     core.endGroup();
 
-    async function dryRunCmd(cmd: string,  ...args: string[]) {
+    async function dryRunCmd(cmd: string,  ...args: string[]): Promise<void> {
         const command = [cmd].concat(args).join(' ');
         core.debug(`Would execute: \`${command}\``);
         executedCommands.push(command);
     }
 
-    async function dryRunGitHub(...args: string[]) {
+    async function dryRunGitHub(...args: string[]): Promise<void> {
         await dryRunCmd('github', ...args);
     }
 
-    async function runGit(...args: string[]) {
+    async function runGit(...args: string[]): Promise<void> {
         await (dryRun ? dryRunCmd : runCmd)('git', ...args);
     }
 
@@ -203,7 +202,7 @@ async function main() {
     core.endGroup();
 
     if (!skipRepoSetup) {
-        const userName = process.env.GITHUB_ACTOR || 'nobody';
+        const userName = process.env.GITHUB_ACTOR ?? 'nobody';
         await core.group('Setting up repo', async () => await Promise.all([
             runGit('config', 'user.name', userName),
             runGit('config', 'user.email', `${userName}@users.noreply.github.com`),
@@ -268,7 +267,7 @@ async function main() {
                 return;
             }
 
-            // To mark the full release as latest, we simply update it by appending `&nbsp` and removing it again.
+            // To mark the full release as "latest", we simply update it by appending `&nbsp` and removing it again.
             const appendUpdate = {
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
@@ -288,14 +287,14 @@ async function main() {
                 await octokit.rest.repos.updateRelease(restoreUpdate);
             } else {
                 interface IReleaseUpdate {
-                    owner: string;
-                    repo: string;
-                    release_id: number;
-                    body?: string;
-                    make_latest: MakeLatestRelease;
+                    readonly owner: string;
+                    readonly repo: string;
+                    readonly release_id: number;
+                    readonly body?: string;
+                    readonly make_latest: MakeLatestRelease;
                 }
                 async function dryRunUpdate(update: IReleaseUpdate): Promise<void> {
-                    await dryRunGitHub('update-release', update.release_id.toString(), update.body || '');
+                    await dryRunGitHub('update-release', update.release_id.toString(), update.body ?? '');
                 }
                 await dryRunUpdate(appendUpdate);
                 await dryRunUpdate(restoreUpdate);

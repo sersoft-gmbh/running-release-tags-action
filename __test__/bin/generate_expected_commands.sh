@@ -29,30 +29,30 @@ if [ "${SKIP_REPO_SETUP}" != 'true' ]; then
   echo "git config user.email ${GH_USER}@users.noreply.github.com"
 fi
 
-if [ "${UPDATE_MAJOR}" == 'true' ]; then
+if [ "${UPDATE_MAJOR}" = 'true' ]; then
   echo "git tag --force ${MAJOR_TAG}"
 fi
 
-if [ "${UPDATE_MINOR}" == 'true' ]; then
+if [ "${UPDATE_MINOR}" = 'true' ]; then
   echo "git tag --force ${MINOR_TAG}"
 fi
 
-if [ "${UPDATE_MAJOR}" == 'true' ]; then
+if [ "${UPDATE_MAJOR}" = 'true' ]; then
   echo "git push --force origin ${MAJOR_TAG}"
 fi
 
-if [ "${UPDATE_MINOR}" == 'true' ]; then
+if [ "${UPDATE_MINOR}" = 'true' ]; then
   echo "git push --force origin ${MINOR_TAG}"
 fi
 
-if [ "${CREATE_RELEASES}" == 'true' ]; then
-  if [ "${UPDATE_MAJOR}" == 'true' ]; then
+if [ "${CREATE_RELEASES}" = 'true' ]; then
+  if [ "${UPDATE_MAJOR}" = 'true' ]; then
     RELEASE_TITLE=$(echo -en "${8}" | sed -E "s|\\\$\{version\}|${MAJOR_TAG}|g")
     RELEASE_BODY=$(echo -en "${9}" | sed -E "s|\\\$\{version\}|${MAJOR_TAG}|g")
     echo "github get-release-by-tag ${MAJOR_TAG}"
     echo "github create-release ${MAJOR_TAG} ${RELEASE_TITLE} ${RELEASE_BODY} ${CREATE_RELEASES_AS_DRAFT}"
   fi
-  if [ "${UPDATE_MINOR}" == 'true' ]; then
+  if [ "${UPDATE_MINOR}" = 'true' ]; then
     RELEASE_TITLE=$(echo -en "${10}" | sed -E "s|\\\$\{version\}|${MINOR_TAG}|g")
     RELEASE_BODY=$(echo -en "${11}" | sed -E "s|\\\$\{version\}|${MINOR_TAG}|g")
     echo "github get-release-by-tag ${MINOR_TAG}"
@@ -60,7 +60,7 @@ if [ "${CREATE_RELEASES}" == 'true' ]; then
   fi
 fi
 
-if [ "${UPDATE_FULL_RELEASE}" == 'true' ]; then
+if [ "${UPDATE_FULL_RELEASE}" = 'true' ]; then
   echo "github get-release-by-tag ${TAG}"
   echo 'github get-latest-release'
   echo 'github update-release 1234 Dry Run Testing Body&nbsp;'

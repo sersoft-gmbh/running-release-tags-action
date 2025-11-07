@@ -3,11 +3,15 @@ name: Tests
 on:
   push:
     branches: [ main ]
-    paths: 
+    paths:
       - 'dist/*.js'
       - '.github/workflows/tests.yml'
   pull_request:
     branches: [ main ]
+
+permissions:
+  contents: read
+  pull-requests: read
 
 jobs:
   test-defaults:
