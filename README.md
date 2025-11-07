@@ -22,7 +22,7 @@ Default: `'v?'`
 
 The regex that is used to match allowed tag suffixes.<br/>
 Default: `''`
-    
+
 ### `fail-on-non-semver-tag`
 
 Whether the action should fail on non-semver compatible tags. If `false`, it simply writes a log messages and exists gracefully.<br/>
@@ -90,7 +90,7 @@ Default: `${{github.token}}`
 
 Use the following snippet to create a major and minor release for the tag `1.2.3`:
 ```yaml
-uses: sersoft-gmbh/running-release-tags-action@v3
+uses: sersoft-gmbh/running-release-tags-action@v4
 with:
   tag: 1.2.3
 ```
