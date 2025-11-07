@@ -134,12 +134,12 @@ async function main() {
     // We cannot use `getBooleanInput` here, since it fails if not set.
     const dryRun = core.isDebug() && core.getInput('dry-run') == 'true';
 
-    const tag = core.getInput('tag') ?? parseTag(dryRun);
+    const tag = core.getInput('tag') || parseTag(dryRun);
     if (!tag)
         throw new Error('Input `tag` was not set and `${{github.ref}}` is not a valid tag ref!');
 
-    const prefixRegex = core.getInput('prefix-regex') ?? '';
-    const suffixRegex = core.getInput('suffix-regex') ?? '';
+    const prefixRegex = core.getInput('prefix-regex');
+    const suffixRegex = core.getInput('suffix-regex');
     const failOnNonSemVerTag = core.getBooleanInput('fail-on-non-semver-tag', { required: true });
     const updateMajor = core.getBooleanInput('update-major', { required: true });
     const updateMinor = core.getBooleanInput('update-minor', { required: true });
@@ -202,7 +202,7 @@ async function main() {
     core.endGroup();
 
     if (!skipRepoSetup) {
-        const userName = process.env.GITHUB_ACTOR ?? 'nobody';
+        const userName = process.env.GITHUB_ACTOR || 'nobody';
         await core.group('Setting up repo', async () => await Promise.all([
             runGit('config', 'user.name', userName),
             runGit('config', 'user.email', `${userName}@users.noreply.github.com`),
