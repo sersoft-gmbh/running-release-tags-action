@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
-import { exec } from '@actions/exec';
+import {exec} from '@actions/exec';
 import * as github from '@actions/github';
-import { GitHub } from '@actions/github/lib/utils';
+import {type GitHub} from '@actions/github/lib/utils';
 
 type GHOctoKit = InstanceType<typeof GitHub>;
 type MakeLatestRelease = 'false' | 'true' | 'legacy';
@@ -21,8 +21,8 @@ interface IReleaseParameters {
 interface IRelease {
     readonly id: number;
     readonly tag_name: string;
-    readonly name?: string;
-    readonly body?: string;
+    readonly name: string | null;
+    readonly body?: string | null;
 }
 
 async function runCmd(cmd: string, ...args: string[]): Promise<void> {
@@ -52,10 +52,10 @@ function parseTag(dryRun: boolean): (string | null) {
     return refVar.substring(prefix.length);
 }
 
-async function _responseOrNull<T>(promise: Promise<IGHOctoKitResponse<any>>): Promise<(T | null)> {
+async function _responseOrNull<T>(promise: Promise<IGHOctoKitResponse<T>>): Promise<(T | null)> {
     try {
         let response = await promise;
-        return response.status === 200 ? response.data as T : null;
+        return response.status === 200 ? response.data : null;
     } catch (e: any) {
         if (Object.hasOwn(e, 'status') && e.status == 404)
             return null;
@@ -279,7 +279,7 @@ async function main() {
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
                 release_id: release.id,
-                body: release.body,
+                body: release.body ?? undefined,
                 make_latest: 'true' as MakeLatestRelease,
             };
             if (!dryRun) {
